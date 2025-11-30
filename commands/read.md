@@ -1,7 +1,7 @@
 ---
 description: Read files in context
 allowed-tools: Bash(find:*), Bash(grep:*), Bash(ls:*), Bash(head:*), Bash(cat:*)
-argument-hint: [file1] [file2] ... or [directory] or [description]
+argument-hint: [file1 file2 ... or directory or description]
 ---
 ## Reading Task
 1. Read the following files **in full**: $ARGUMENTS
