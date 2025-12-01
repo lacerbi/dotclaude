@@ -26,3 +26,7 @@ Slash commands for common workflows.
 /triage "the login button doesn't work on mobile"
 /read src/config.ts src/utils.ts
 ```
+
+## License
+
+[MIT](LICENSE)
