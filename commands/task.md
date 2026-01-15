@@ -53,4 +53,7 @@ If deploying sub-agents for subtasks:
 - Sub-agent updates checklist to `[x]` or `[!]` upon completion
 - Use Opus for complex subtasks, Sonnet for standard implementation (Haiku only for pure read-only information gathering with no interpretation needed—or just do trivial tasks directly)
 
+### 6. Verification
+After completing all checklist items, run `/doublecheck` to verify the work before marking the task fully complete.
+
 **Remember**: The checklist file is your required working tracker. Keep entries brief, link to files for details, and update continuously as you progress.
