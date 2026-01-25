@@ -8,14 +8,22 @@ $ARGUMENTS
 
 ## Your Instructions
 
-### 1. Create Task Plan
-**Immediately** create a markdown file `TASK_[descriptor]_[timestamp].md` containing:
+### 1. Use Existing Plan or Create Task Plan
+
+**If a PLAN file was provided or mentioned** (e.g., from a prior `/plan` command) with structured phases:
+- **Use the existing PLAN file** as your working document—do NOT create a separate TASK file
+- Review the plan and convert implementation bullet points to checkboxes (e.g., "Work" items become `- [ ]` tasks)
+- Add new checklist items or sections if gaps are apparent
+- Continue to add items as needed during execution
+- Update status markers in place as you progress
+
+**If no suitable PLAN file exists**, create a markdown file `TASK_[descriptor]_[timestamp].md` containing:
 - Task description
 - Checklist of specific steps/subtasks
 - Success criteria
 - Any dependencies or prerequisites
 
-**KEEP IT BRIEF AND TO THE POINT**: 
+**KEEP IT BRIEF AND TO THE POINT**:
 - Each checklist item should be one concise line
 - Link to relevant files rather than explaining details: `[config](./src/config.js)`
 - No verbose descriptions - this is a tracking tool, not documentation
@@ -41,10 +49,13 @@ Follow this pattern throughout:
 2. The file is your live working document
 3. Anyone should be able to see current progress by reading the file
 
-### 4. Completion
+### 4. Completion Expectations
+
+**Complete the full task/plan.** Do not arbitrarily skip items, defer work, or stop halfway. Minor deviations and unexpected issues are normal—handle them and continue. Only stop early if an overwhelming reason emerges during implementation (e.g., core assumptions are fundamentally wrong, blocking dependencies are unresolvable).
+
 When finished, ensure the file shows:
 - Final status of all items
-- Any unresolved issues
+- Any unresolved issues (with explanation if incomplete)
 - Brief summary of completion
 
 ### 5. Sub-Agent Usage
