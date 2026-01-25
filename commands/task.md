@@ -12,8 +12,9 @@ $ARGUMENTS
 
 **If a PLAN file was provided or mentioned** (e.g., from a prior `/plan` command) with structured phases:
 - **Use the existing PLAN file** as your working document—do NOT create a separate TASK file
-- Review the plan and convert implementation bullet points to checkboxes (e.g., "Work" items become `- [ ]` tasks)
-- Add new checklist items or sections if gaps are apparent
+- **Preserve the plan's structure and content**—goals, file references, verification details, and context are useful implementation information
+- Convert implementation bullet points to checkboxes for tracking (e.g., "Work" items become `- [ ]` tasks)
+- Add new checklist items or sections if gaps become apparent
 - Continue to add items as needed during execution
 - Update status markers in place as you progress
 
