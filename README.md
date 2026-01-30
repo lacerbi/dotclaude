@@ -12,7 +12,7 @@ Slash commands for common workflows.
 | [`/audit <files>`](commands/audit.md) | Analyze files for quality, consistency, and codebase integration | - |
 | [`/doublecheck [focus]`](commands/doublecheck.md) | Verify all changes meet requirements and preserve correctness | - |
 | [`/triage <feedback>`](commands/triage.md) | Investigate external feedback, validate issues, fix what's real | - |
-| [`/read <files>`](commands/read.md) | Read files in full without summarization | - |
+| [`/read <files>`](commands/read.md) | Read files in full without summarization | Uses [`toks`](https://www.npmjs.com/package/toks) for token counting |
 | [`/x <task-name>`](commands/x.md) | Execute task from `.ath_materials/TASK_*.md` | Obsolete |
 
 ## Usage
