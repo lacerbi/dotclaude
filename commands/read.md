@@ -1,6 +1,6 @@
 ---
 description: Read files in context
-allowed-tools: Bash(find:*), Bash(grep:*), Bash(ls:*), Bash(head:*), Bash(cat:*), Bash(wc:*)
+allowed-tools: Bash(find:*), Bash(grep:*), Bash(ls:*), Bash(head:*), Bash(cat:*), Bash(wc:*), Bash(toks:*), Bash(du:*)
 argument-hint: [file1 file2 ... or directory or description]
 ---
 ## Reading Task
@@ -8,9 +8,21 @@ argument-hint: [file1 file2 ... or directory or description]
 **Files to read in full**: $ARGUMENTS
 
 ### Process
-1. **Check file sizes first**: Run `wc -l` on all files to get line counts
-2. **Read each file in full**:
-   - Files ≤1000 lines: Read normally
-   - Files >1000 lines: Read in chunks of 1000 lines using offset/limit until complete
-3. **Do NOT delegate** to subagents - read the files yourself
-4. **After reading**: Wait for further instructions (do not summarize or take additional actions)
+
+1. **Check file metrics** (all files in one command each):
+   - Size in KB: `du -k file1 file2 ...`
+   - Token count: `toks file1 file2 ...`
+   - Line count: `wc -l file1 file2 ...`
+
+2. **For each file, decide whether to split**:
+   - If size > 80 KB OR tokens > 22,000 → split the file
+   - Otherwise → read in full
+
+3. **If splitting, calculate chunks**:
+   - `chunks = max(ceil(size_kb / 80), ceil(tokens / 22000))`
+   - `lines_per_chunk = ceil(total_lines / chunks)`
+   - Read file in chunks using offset/limit
+
+4. **Do NOT delegate** to subagents - read the files yourself
+
+5. **After reading**: Wait for further instructions (do not summarize or take additional actions)
