@@ -9,3 +9,5 @@
 !README.md
 !commands/
 !commands/**
+!bin/
+!bin/read-files

@@ -1,0 +1,85 @@
+#!/bin/bash
+# read-files: Analyze files and output reading instructions for Claude
+# Usage: read-files file1 [file2 ...]
+#
+# Outputs instructions for which files to read in full vs chunked
+
+set -euo pipefail
+
+SIZE_LIMIT_KB=80
+TOKEN_LIMIT=22000
+
+ceil_div() {
+    echo $(( ($1 + $2 - 1) / $2 ))
+}
+
+max() {
+    if [ "$1" -gt "$2" ]; then echo "$1"; else echo "$2"; fi
+}
+
+analyze_file() {
+    local file="$1"
+
+    if [ ! -f "$file" ]; then
+        echo "ERROR: $file - not found"
+        return 1
+    fi
+
+    # Get metrics
+    local size_kb=$(du -k "$file" | cut -f1)
+    local tokens
+    tokens=$(toks "$file" 2>/dev/null | awk '{print $1}')
+    tokens=${tokens:-0}
+    local lines=$(wc -l < "$file")
+
+    # Decide if chunking needed
+    local needs_chunk=0
+    local reason=""
+    if [ "$size_kb" -gt "$SIZE_LIMIT_KB" ]; then
+        needs_chunk=1
+        reason="size ${size_kb}KB > ${SIZE_LIMIT_KB}KB"
+    fi
+    if [ "$tokens" -gt "$TOKEN_LIMIT" ]; then
+        needs_chunk=1
+        if [ -n "$reason" ]; then
+            reason="$reason, tokens ${tokens} > ${TOKEN_LIMIT}"
+        else
+            reason="tokens ${tokens} > ${TOKEN_LIMIT}"
+        fi
+    fi
+
+    if [ "$needs_chunk" -eq 0 ]; then
+        echo "READ FULL: $file"
+    else
+        # Calculate chunks
+        local chunks_by_size=$(ceil_div "$size_kb" "$SIZE_LIMIT_KB")
+        local chunks_by_tokens=$(ceil_div "$tokens" "$TOKEN_LIMIT")
+        local num_chunks=$(max "$chunks_by_size" "$chunks_by_tokens")
+        local lines_per_chunk=$(ceil_div "$lines" "$num_chunks")
+
+        echo "CHUNK: $file (${reason})"
+        echo "  Total: ${lines} lines, split into ${num_chunks} chunks of ${lines_per_chunk} lines"
+
+        local offset=1
+        local chunk=1
+        while [ "$chunk" -le "$num_chunks" ]; do
+            local end=$((offset + lines_per_chunk - 1))
+            if [ "$end" -gt "$lines" ]; then
+                end=$lines
+            fi
+            echo "  Chunk ${chunk}: Read with offset=$offset limit=$lines_per_chunk"
+            offset=$((offset + lines_per_chunk))
+            chunk=$((chunk + 1))
+        done
+    fi
+}
+
+if [ $# -eq 0 ]; then
+    echo "Usage: read-files file1 [file2 ...]" >&2
+    exit 1
+fi
+
+for file in "$@"; do
+    analyze_file "$file"
+    echo ""
+done

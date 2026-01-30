@@ -15,6 +15,12 @@ Slash commands for common workflows.
 | [`/read <files>`](commands/read.md) | Read files in full without summarization | Uses [`toks`](https://www.npmjs.com/package/toks) for token counting |
 | [`/x <task-name>`](commands/x.md) | Execute task from `.ath_materials/TASK_*.md` | Obsolete |
 
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| [`bin/read-files`](bin/read-files) | Analyzes files and outputs reading instructions (chunking large files) |
+
 ## Usage
 
 ```
