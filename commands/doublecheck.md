@@ -19,6 +19,33 @@ Verify that:
 - Nothing is missing or requires additional updates
 - Changes work coherently together
 
+### Deeper Review
+
+Go beyond surface-level correctness. Evaluate the work for:
+
+- **Completeness**: Are all requirements addressed? Are there gaps, missing scenarios, or implicit expectations left unhandled?
+- **Correctness**: Does the logic hold? Are there subtle errors, flawed assumptions, or reasoning gaps?
+- **Consistency**: Do the changes match the provided or discussed specs? Do they follow the conventions and patterns already established in the project?
+- **Structural integrity**: Is the work well-organized? Watch for unclear boundaries, redundancy, or unnecessary entanglement between parts that will make future changes harder.
+- **Hazard avoidance**: Identify footguns—things that look correct now but will mislead or break later (e.g., ambiguous naming, brittle assumptions, implicit dependencies, information that will drift out of sync).
+
+**Look beyond the immediate task.** Explore the surrounding project enough to catch:
+- Existing material that overlaps with or is affected by the changes
+- Patterns or conventions elsewhere that the changes should respect
+- Downstream consequences the author may not have considered
+
+For **code** specifically, also check:
+- Error handling and boundary conditions
+- Thread safety or concurrency concerns (if applicable)
+- Whether tests cover the new behavior adequately
+- API surface changes and their impact on callers
+
+For **plans and design documents**, also check:
+- Whether the proposed approach accounts for known constraints and prior decisions
+- Feasibility of each step and whether dependencies between steps are correctly sequenced
+- Whether the plan addresses verification and rollback
+- Whether affected documentation (READMEs, API docs, guides) is updated or flagged for update
+
 **Focus area (optional; if empty focus on all changes/files)**:
 
 <focus> $ARGUMENTS </focus>
