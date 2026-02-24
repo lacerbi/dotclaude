@@ -27,6 +27,7 @@ Go beyond surface-level correctness. Evaluate the work for:
 - **Correctness**: Does the logic hold? Are there subtle errors, flawed assumptions, or reasoning gaps?
 - **Consistency**: Do the changes match the provided or discussed specs? Do they follow the conventions and patterns already established in the project?
 - **Structural integrity**: Is the work well-organized? Watch for unclear boundaries, redundancy, or unnecessary entanglement between parts that will make future changes harder.
+- **Consolidation**: Flag spaghettification—duplicated logic, parallel structures doing similar things, components that could be merged or reused. In code: identify candidates for shared functions, similar modules that could be unified, redundant abstractions. In plans/docs: overlapping sections, repeated concepts, restated prerequisites or duplicated steps. Report what you find; do not refactor.
 - **Hazard avoidance**: Identify footguns—things that look correct now but will mislead or break later (e.g., ambiguous naming, brittle assumptions, implicit dependencies, information that will drift out of sync).
 
 **Look beyond the immediate task.** Explore the surrounding project enough to catch:

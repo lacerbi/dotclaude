@@ -1,6 +1,7 @@
 ---
 description: Create a detailed plan with exploration before execution
 argument-hint: <task description>
+allowed-tools: Skill(doublecheck)
 ---
 You are entering PLANNING MODE. Explore and analyze before doing any work.
 
@@ -109,17 +110,22 @@ Status: PENDING APPROVAL
 
 Add sections as needed: Prerequisites, Risks, Rollback, Testing Strategy, etc.
 
-## Phase 5: User Confirmation
+## Phase 5: Plan Review
+
+Run `/doublecheck` against the plan file to verify completeness, correctness, feasibility, and internal consistency before presenting it to the user. Fix any issues found.
+
+## Phase 6: User Confirmation
 
 1. Tell the user where the plan file is
-2. Ask them to review and edit if needed
-3. Wait for explicit confirmation
-4. Do NOT begin work until confirmed
+2. Share the doublecheck findings (and any fixes applied)
+3. Ask them to review and edit if needed
+4. Wait for explicit confirmation
+5. Do NOT begin work until confirmed
 
-## Phase 6: Execute
+## Phase 7: Execute
 
 Once confirmed:
-1. Re-read the plan file (user may have edited it)
+1. Re-read the plan file (user or double-check may have edited it)
 2. Note any changes
 3. Proceed following the plan
 
