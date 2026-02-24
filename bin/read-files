@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-SIZE_LIMIT_KB=75
-TOKEN_LIMIT=20000
+SIZE_LIMIT_KB=78
+TOKEN_LIMIT=21000
 
 ceil_div() {
     echo $(( ($1 + $2 - 1) / $2 ))
@@ -26,11 +26,15 @@ analyze_file() {
     fi
 
     # Get metrics
-    local size_kb=$(du -k "$file" | cut -f1)
+    local size_bytes=$(stat --format='%s' "$file")
+    local lines=$(wc -l < "$file")
+    # Read tool adds line-number prefixes (~8 bytes/line), so estimate effective size
+    local overhead=$(( lines * 8 ))
+    local effective_bytes=$(( size_bytes + overhead ))
+    local size_kb=$(( effective_bytes / 1024 ))
     local tokens
     tokens=$(toks "$file" 2>/dev/null | awk '{print $1}')
     tokens=${tokens:-0}
-    local lines=$(wc -l < "$file")
 
     # Decide if chunking needed
     local needs_chunk=0
