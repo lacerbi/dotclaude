@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-SIZE_LIMIT_KB=80
-TOKEN_LIMIT=22000
+SIZE_LIMIT_KB=75
+TOKEN_LIMIT=20000
 
 ceil_div() {
     echo $(( ($1 + $2 - 1) / $2 ))
