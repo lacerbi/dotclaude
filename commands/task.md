@@ -10,8 +10,6 @@ $ARGUMENTS
 
 ### 1. Use Existing Plan or Create Task Plan
 
-> **NEVER REPLACE A PLAN FILE.** If a plan file exists, keep ALL existing content intact—goals, file references, verification details, context, everything. You MUST edit in place: add checkboxes, append new tasks, update status markers, extend sections. But never delete, summarize, condense, or rewrite existing content. The plan is the user's work product.
-
 **If a PLAN file was provided or mentioned** (e.g., from a prior `/plan` command) with structured phases:
 - **Use the existing PLAN file** as your working document—do NOT create a separate TASK file
 - **Preserve ALL existing content**—edit in place to add tracking, never rewrite from scratch
@@ -19,6 +17,10 @@ $ARGUMENTS
 - Add new checklist items or sections if gaps become apparent
 - Continue to add items as needed during execution
 - Update status markers in place as you progress
+
+> **NEVER REPLACE A PLAN FILE.** If a plan file exists, keep ALL existing content intact—goals, file references, verification details, context, everything. You MUST edit in place: add checkboxes, append new tasks, update status markers, extend sections. But never delete, summarize, condense, or rewrite existing content. The plan is the user's work product.
+>
+> **Common violation**: Replacing a plan section's prose, context, and details with bare checkboxes. The checkboxes go ALONGSIDE the existing content, not instead of it. If your edit removes more text than it adds, you are doing it wrong!
 
 **If no suitable PLAN file exists**, create a markdown file `TASK_[descriptor]_[timestamp].md` containing:
 - Task description
