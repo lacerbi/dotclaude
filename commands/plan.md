@@ -48,7 +48,7 @@ After exploration:
 
 ## Phase 4: Plan Creation
 
-Create a plan file in the user-specified plans folder, or project root if not specified.
+Create a plan file named `PLAN-<task-slug>.md` (e.g., `PLAN-add-user-auth.md`) in the project root, unless the user or project instructions (CLAUDE.md, AGENTS.md) specify a different location. The task slug should be lowercase, hyphen-separated, and concise (3-5 words max).
 
 **Scale the plan to complexity**:
 
