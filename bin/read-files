@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-SIZE_LIMIT_KB=50
+SIZE_LIMIT_KB=40
 TOKEN_LIMIT=21000
 
 ceil_div() {
