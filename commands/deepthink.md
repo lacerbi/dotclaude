@@ -6,7 +6,7 @@ argument-hint: [problem or question, optionally mention number of agents/cycles]
 $ARGUMENTS
 
 ## Configuration
-Defaults: **10 agents**, **2–3 cycles** (2 if early convergence, 3 if significant disagreement persists). Adjust if the user specifies (e.g., "use 5 agents", "do 4 rounds", "go deeper").
+Defaults: **5 agents** for Cycle 1, **3 agents** for subsequent cycles, **2–3 cycles** (2 if early convergence, 3 if significant disagreement persists). Adjust if the user specifies (e.g., "use 10 agents", "do 4 rounds", "go deeper").
 
 ## Your Task
 
