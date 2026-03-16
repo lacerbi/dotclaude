@@ -30,6 +30,7 @@ path/to/other.txt - why it's relevant
 
 Guidelines:
 - **Be selective**: Only include files genuinely needed for the task
+- **Skip CLAUDE.md/AGENTS.md**: These are loaded automatically — never include them in the list
 - **Think like a newcomer**: Include foundational context (README, key docs) that you already know but the reader may not
 - **Order by importance**: Most critical files first
 - **Keep explanations minimal**: A few words per file
