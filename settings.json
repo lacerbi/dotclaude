@@ -1,4 +1,5 @@
 {
   "alwaysThinkingEnabled": true,
+  "autoUpdatesChannel": "latest",
   "effortLevel": "high"
 }
