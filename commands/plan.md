@@ -28,6 +28,7 @@ Explore the project to understand what exists and what the task involves. Scale 
 - **Prior Work Explorer**: Existing similar work, patterns, or approaches to build on
 - **Context Explorer**: Related materials, dependencies, constraints
 - **Domain Explorer**: Subject matter, conventions, standards relevant to the task
+- **Docs Explorer**: Documentation (READMEs, guides, API docs, comments) — what exists in or adjacent to the task area, what will need updating, and what doesn't exist yet but should
 
 (For code-heavy tasks: Architecture, Feature, Dependency, Test explorers may be more appropriate)
 
@@ -45,6 +46,7 @@ After exploration:
 1. Read/verify key files and materials identified
 2. Confirm or refute hypotheses
 3. Build a mental model of the current state and what the task requires
+4. Identify documentation that must be created, updated, or extended as part of the work — not as an afterthought but as a deliverable
 
 ## Phase 4: Plan Creation
 
@@ -63,6 +65,9 @@ Create a plan file named `PLAN-<task-slug>.md` (e.g., `PLAN-add-user-auth.md`) i
 1. [Step]
 2. [Step]
 3. [Step]
+
+## Documentation
+- [ ] [Docs to update or create — remove section if genuinely none]
 
 ## Verification
 - [ ] [How to confirm success]
@@ -100,6 +105,9 @@ Status: PENDING APPROVAL
 
 ### Phase 2: [Name]
 [Same structure]
+
+## Documentation
+What docs need to be created, updated, or extended as part of this work. Include as steps in the relevant phase above, or as a dedicated phase if substantial. Remove this section only if the task genuinely has zero documentation impact.
 
 ## Open Questions
 - [Unresolved questions for the user]

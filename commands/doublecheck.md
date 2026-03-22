@@ -40,12 +40,13 @@ For **code** specifically, also check:
 - Thread safety or concurrency concerns (if applicable)
 - Whether tests cover the new behavior adequately
 - API surface changes and their impact on callers
+- Whether documentation (READMEs, guides, API docs, inline comments) needs updating or creation to reflect the changes
 
 For **plans and design documents**, also check:
 - Whether the proposed approach accounts for known constraints and prior decisions
 - Feasibility of each step and whether dependencies between steps are correctly sequenced
 - Whether the plan addresses verification and rollback
-- Whether affected documentation (READMEs, API docs, guides) is updated or flagged for update
+- Whether documentation (READMEs, API docs, guides) needs updating or creation to reflect the changes
 
 **Focus area (optional; if empty focus on all changes/files)**:
 
