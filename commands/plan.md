@@ -120,7 +120,9 @@ Add sections as needed: Prerequisites, Risks, Rollback, Testing Strategy, etc.
 
 ## Phase 5: Plan Review
 
-Run `/doublecheck` against the plan file to verify completeness, correctness, feasibility, and internal consistency before presenting it to the user. Fix any issues found.
+You MUST run `/doublecheck` against the plan file to verify completeness, correctness, feasibility, and internal consistency before presenting it to the user. Fix any issues found.
+
+Do not skip this step. Do not decide it's "not worth it" because the plan looks complete or the task seems simple — past instances have skipped it and shipped flawed plans. This step is non-negotiable.
 
 ## Phase 6: User Confirmation
 
@@ -141,6 +143,7 @@ Once confirmed:
 
 - Don't skip exploration
 - Don't start work during planning
+- Always run `/doublecheck` in Phase 5 — never skip it, no exceptions
 - Verify, don't assume
 - If unclear, ask the user (AskUserQuestion)
 - Get user confirmation before executing
