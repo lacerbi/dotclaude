@@ -1,19 +1,24 @@
-# Claude Code Custom Commands
+# Claude Code Skills
 
-Slash commands for common workflows.
+Personal [skills](https://code.claude.com/docs/en/skills) for common Claude Code workflows. Each lives in `skills/<name>/SKILL.md` and runs when you type `/<name>`; some can also be invoked by Claude on its own when relevant.
 
-## Commands
+## Skills
 
-| Command | Description | Comments |
-|---------|-------------|----------|
-| [`/plan <task>`](commands/plan.md) | Explore project folder and create a detailed plan before execution | Replaces standard plan mode which uses subpar Haiku models as subagents |
-| [`/task <description>`](commands/task.md) | Create a live task checklist that tracks progress in real-time | - |
-| [`/deepthink <problem>`](commands/deepthink.md) | Deep analysis using parallel Opus agents with iterative refinement | Mimics [GPT 5.x Pro](https://platform.openai.com/docs/models/gpt-5-pro) or [Gemini](https://blog.google/products/gemini/gemini-2-5-deep-think/) parallel/deep thinking modes |
-| [`/audit <files>`](commands/audit.md) | Analyze files for quality, consistency, and codebase integration | - |
-| [`/doublecheck [focus]`](commands/doublecheck.md) | Verify all changes meet requirements and preserve correctness | - |
-| [`/triage <feedback>`](commands/triage.md) | Investigate external feedback, validate issues, fix what's real | - |
-| [`/load <files>`](commands/load.md) | Read files in full without summarization | Uses [`toks`](https://www.npmjs.com/package/toks) for token counting |
-| [`/x <task-name>`](commands/x.md) | Execute task from `.ath_materials/TASK_*.md` | Obsolete |
+| Skill | Description | Invoke | Comments |
+|-------|-------------|--------|----------|
+| [`/plan <task>`](skills/plan/SKILL.md) | Explore the project and create a detailed plan before execution | Explicit | Replaces standard plan mode, which uses subpar Haiku models as subagents |
+| [`/task <description>`](skills/task/SKILL.md) | Create a live task checklist that tracks progress in real-time | Auto | - |
+| [`/deepthink <problem>`](skills/deepthink/SKILL.md) | Deep analysis using parallel Opus agents with iterative refinement | Explicit | Mimics [GPT 5.x Pro](https://platform.openai.com/docs/models/gpt-5-pro) or [Gemini](https://blog.google/products/gemini/gemini-2-5-deep-think/) parallel/deep thinking modes |
+| [`/files <task>`](skills/files/SKILL.md) | Identify the essential context files to read before starting a task | Explicit | - |
+| [`/load <files>`](skills/load/SKILL.md) | Read files in full without summarization | Auto | Uses [`toks`](https://www.npmjs.com/package/toks) for token counting |
+| [`/audit <files>`](skills/audit/SKILL.md) | Analyze files for quality, consistency, and codebase integration | Explicit | - |
+| [`/doublecheck [focus]`](skills/doublecheck/SKILL.md) | Verify all changes meet requirements and preserve correctness | Auto | - |
+| [`/triage <feedback>`](skills/triage/SKILL.md) | Investigate external feedback, validate issues, fix what's real | Explicit | - |
+| [`/handoff`](skills/handoff/SKILL.md) | Make work resumable from a clean checkout: commit/push, record in-flight async work, flag what isn't durable | Explicit | - |
+| [`/hpc`](skills/hpc/SKILL.md) | Launch and manage jobs on the HPC cluster | Explicit | Requires the `hpc` launcher tool |
+| [`/x <task-name>`](skills/x/SKILL.md) | Execute task from `.ath_materials/TASK_*.md` | Explicit | Obsolete |
+
+**Invoke**: *Auto* skills may be triggered by Claude when relevant; *Explicit* skills run only when you call `/<name>` (or ask for them) — they set `disable-model-invocation: true` or are explicit-only by convention.
 
 ## Scripts
 
@@ -27,10 +32,12 @@ Slash commands for common workflows.
 /plan implement user authentication
 /task refactor the payment module
 /deepthink should we use microservices or monolith?
+/files add a caching layer to the API
 /audit src/components/
 /doublecheck authentication logic
 /triage "the login button doesn't work on mobile"
 /load src/config.ts src/utils.ts
+/handoff
 ```
 
 ## License
