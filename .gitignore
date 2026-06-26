@@ -7,7 +7,7 @@
 !LICENSE
 !settings.json
 !README.md
-!commands/
-!commands/**
+!skills/
+!skills/**
 !bin/
 !bin/read-files

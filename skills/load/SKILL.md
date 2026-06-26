@@ -1,4 +1,5 @@
 ---
+name: load
 description: Read files in context
 allowed-tools: Bash(~/.claude/bin/read-files:*), Read, Glob
 argument-hint: [file1 file2 ... or glob pattern]

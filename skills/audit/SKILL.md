@@ -1,4 +1,6 @@
 ---
+name: audit
+disable-model-invocation: true
 description: Analyze files for quality and consistency within the codebase
 allowed-tools: Bash(find:*), Bash(grep:*), Bash(ls:*), Bash(head:*), Bash(cat:*), Write
 argument-hint: [file1 file2 ... or directory or description]

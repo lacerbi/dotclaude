@@ -1,4 +1,6 @@
 ---
+name: files
+disable-model-invocation: true
 description: Identify files needed to accomplish a task
 allowed-tools: Bash(find:*), Bash(grep:*), Bash(ls:*), Glob, Grep, Read
 argument-hint: <task description>

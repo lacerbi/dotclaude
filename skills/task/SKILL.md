@@ -1,4 +1,5 @@
 ---
+name: task
 description: Create and maintain a task checklist that tracks progress in real-time
 allowed-tools: Edit, Write, Bash(ls:*), Bash(cat:*)
 argument-hint: [task-description]

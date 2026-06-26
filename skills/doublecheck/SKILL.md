@@ -1,4 +1,5 @@
 ---
+name: doublecheck
 description: Deep verification that all changes meet requirements and preserve correctness
 allowed-tools: Bash(git diff:*), Bash(git status:*)
 argument-hint: [specific-focus-area]

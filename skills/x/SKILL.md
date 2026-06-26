@@ -1,4 +1,6 @@
 ---
+name: x
+disable-model-invocation: true
 description: Execute task from .ath_materials task file
 argument-hint: [task-name]
 ---

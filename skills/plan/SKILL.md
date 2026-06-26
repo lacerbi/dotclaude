@@ -1,4 +1,6 @@
 ---
+name: plan
+disable-model-invocation: true
 description: Create a detailed plan with exploration before execution
 argument-hint: <task description>
 allowed-tools: Skill(doublecheck)

@@ -1,4 +1,6 @@
 ---
+name: deepthink
+disable-model-invocation: true
 description: Deep analysis using parallel reasoning with iterative refinement
 argument-hint: [problem or question, optionally mention number of agents/cycles]
 ---

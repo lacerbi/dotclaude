@@ -1,4 +1,6 @@
 ---
+name: triage
+disable-model-invocation: true
 description: Investigate feedback, validate issues, and fix what's real
 allowed-tools: Bash(grep:*), Bash(find:*), Bash(cat:*), Bash(git log:*), Bash(git diff:*), Write
 argument-hint: [feedback or issue description]
