@@ -2,6 +2,8 @@
 
 Personal [skills](https://code.claude.com/docs/en/skills) for common Claude Code workflows. Each lives in `skills/<name>/SKILL.md` and runs when you type `/<name>`; some can also be invoked by Claude on its own when relevant.
 
+See also the companion [Codex skills repository](https://github.com/lacerbi/dotcodex).
+
 ## Skills
 
 | Skill | Description | Invoke | Comments |
