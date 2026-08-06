@@ -8,7 +8,7 @@ See also the companion [Codex skills repository](https://github.com/lacerbi/dotc
 
 | Skill | Description | Invoke | Comments |
 |-------|-------------|--------|----------|
-| [`/plan <task>`](skills/plan/SKILL.md) | Explore the project and create a detailed plan before execution | Explicit | Replaces standard plan mode, which uses subpar Haiku models as subagents |
+| [`/plan <task>`](skills/plan/SKILL.md) | Explore the project and create a detailed plan before execution | Explicit | Replaces standard plan mode |
 | [`/task <description>`](skills/task/SKILL.md) | Create a live task checklist that tracks progress in real-time | Auto | - |
 | [`/deepthink <problem>`](skills/deepthink/SKILL.md) | Deep analysis using parallel Opus agents with iterative refinement | Explicit | Mimics [GPT 5.x Pro](https://platform.openai.com/docs/models/gpt-5-pro) or [Gemini](https://blog.google/products/gemini/gemini-2-5-deep-think/) parallel/deep thinking modes |
 | [`/files <task>`](skills/files/SKILL.md) | Identify the essential context files to read before starting a task | Explicit | - |
