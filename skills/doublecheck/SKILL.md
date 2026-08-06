@@ -1,7 +1,7 @@
 ---
 name: doublecheck
 description: Deep verification that all changes meet requirements and preserve correctness
-allowed-tools: Bash(git diff:*), Bash(git status:*)
+allowed-tools: Bash(git diff:*), Bash(git status:*), Bash(git log:*), Bash(git show:*)
 argument-hint: [specific-focus-area]
 ---
 
