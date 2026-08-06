@@ -3,7 +3,6 @@ name: plan
 disable-model-invocation: true
 description: Create a detailed plan with exploration before execution
 argument-hint: <task description>
-allowed-tools: Skill(doublecheck), SendUserFile
 ---
 You are entering PLANNING MODE. Explore and analyze before doing any work.
 
@@ -24,7 +23,7 @@ Explore the project to understand what exists and what the task involves. Scale 
 
 **For simple tasks**: You may explore directly without subagents.
 
-**For moderate/complex tasks**: Spawn Explore agents in parallel (Task tool, subagent_type='Explore'), each focused on a relevant aspect:
+**For moderate/complex tasks**: Spawn Explore agents in parallel (Agent tool, subagent_type='Explore'), each focused on a relevant aspect:
 
 - **Structure Explorer**: Project organization, key components, how things connect
 - **Prior Work Explorer**: Existing similar work, patterns, or approaches to build on
