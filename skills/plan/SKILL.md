@@ -76,7 +76,7 @@ Create a plan file named `PLAN-<task-slug>.md` (e.g., `PLAN-add-user-auth.md`) i
 3. [Step]
 
 ## Documentation
-- [ ] [Docs to update or create — remove section if genuinely none]
+- [ ] [Docs to update; a new doc only if it uniquely owns something — remove section if genuinely none]
 
 ## Verification
 - [ ] [How to confirm success]
