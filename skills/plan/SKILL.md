@@ -118,6 +118,12 @@ Status: PENDING APPROVAL
 What existing documentation must be updated and, only when it has a distinct durable role, what new document must be created. For each new artifact, state what it uniquely owns and why an existing artifact cannot own it.
 Include documentation as steps in the relevant phase above, or as a dedicated phase if substantial. Remove this section only if the task genuinely has no documentation impact.
 
+## Decisions
+Choices made while drafting that a reasonable person could have made differently and that would be
+costly to reverse once executed. Write each one down as you make it — do not reconstruct this
+section afterwards. Everything below that bar stays a plain statement in the plan.
+- **[What was chosen]** — [why]. Rejected: [alternative] ([its appeal, and why it lost]).
+
 ## Open Questions
 - [Unresolved questions for the user]
 
@@ -125,7 +131,8 @@ Include documentation as steps in the relevant phase above, or as a dedicated ph
 **Please review. Edit directly if needed, then confirm to proceed.**
 ```
 
-Add sections as needed: Prerequisites, Risks, Rollback, Testing Strategy, etc.
+Add sections as needed: Prerequisites, Risks, Rollback, Testing Strategy, etc. A simple plan that
+turns on one material choice should carry a Decisions section too.
 
 ## Phase 5: Plan Review
 
@@ -135,12 +142,29 @@ Do not skip this step. Do not decide it's "not worth it" because the plan looks 
 
 ## Phase 6: User Confirmation
 
-1. Send the plan file to the user with SendUserFile (`display: 'render'` for inline rendering)
-2. Tell the user where the plan file is
-3. Share the doublecheck findings (and any fixes applied)
-4. Ask them to review and edit if needed
-5. Wait for explicit confirmation
-6. Do NOT begin work until confirmed
+Present the plan in the conversation — do not make the user reconstruct it from the file. A plan
+reads as a series of settled statements, which hides the fact that choices were made at all; your
+job here is to expose the choices so approval means something. Scale this to complexity: a simple
+plan needs the summary plus anything genuinely open, and nothing more.
+
+1. **Summarize the plan in plain language.** Assume a technical reader who knows the project
+   broadly but may not recall the details, or was never in them. Say what will change and why —
+   not a phase-by-phase recital. Be direct; skip jargon unless a term genuinely carries meaning
+   no plain phrasing does.
+2. **Present the decisions** from the plan's Decisions section: what was chosen, why, and what was
+   rejected along with its tradeoffs. Present the calls **you** made; skip the ones the user
+   already made or settled with you in conversation — don't re-litigate their own choices back
+   at them.
+3. **Present the open questions.** Give each enough context to be understood cold, the viable
+   options with their tradeoffs, and **your recommended default** — so the user can accept the set
+   as a whole or override just the ones they care about, rather than adjudicating every fork. Use
+   AskUserQuestion for any that genuinely block.
+4. Share the doublecheck findings (and any fixes applied)
+5. Send the plan file with SendUserFile (`display: 'render'` for inline rendering) and say where
+   it lives
+6. Ask them to review and edit if needed
+7. Wait for explicit confirmation
+8. Do NOT begin work until confirmed
 
 ## Phase 7: Execute
 
