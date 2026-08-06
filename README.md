@@ -16,7 +16,6 @@ Personal [skills](https://code.claude.com/docs/en/skills) for common Claude Code
 | [`/triage <feedback>`](skills/triage/SKILL.md) | Investigate external feedback, validate issues, fix what's real | Explicit | - |
 | [`/handoff`](skills/handoff/SKILL.md) | Make work resumable from a clean checkout: commit/push, record in-flight async work, flag what isn't durable | Explicit | - |
 | [`/hpc`](skills/hpc/SKILL.md) | Launch and manage jobs on the HPC cluster | Explicit | Requires the `hpc` launcher tool |
-| [`/x <task-name>`](skills/x/SKILL.md) | Execute task from `.ath_materials/TASK_*.md` | Explicit | Obsolete |
 
 **Invoke**: *Auto* skills may be triggered by Claude when relevant; *Explicit* skills run only when you call `/<name>` (or ask for them) — they set `disable-model-invocation: true` or are explicit-only by convention.
 
@@ -39,6 +38,12 @@ Personal [skills](https://code.claude.com/docs/en/skills) for common Claude Code
 /load src/config.ts src/utils.ts
 /handoff
 ```
+
+## Adding a skill
+
+Skills are published one at a time. A new `skills/<name>/` is ignored by default —
+add `!skills/<name>/**` to `.gitignore` to publish it. This keeps skills that carry
+machine paths, hostnames, or private-project details local unless you opt in.
 
 ## License
 

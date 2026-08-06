@@ -3,7 +3,7 @@ name: plan
 disable-model-invocation: true
 description: Create a detailed plan with exploration before execution
 argument-hint: <task description>
-allowed-tools: Skill(doublecheck)
+allowed-tools: Skill(doublecheck), SendUserFile
 ---
 You are entering PLANNING MODE. Explore and analyze before doing any work.
 
@@ -128,11 +128,12 @@ Do not skip this step. Do not decide it's "not worth it" because the plan looks 
 
 ## Phase 6: User Confirmation
 
-1. Tell the user where the plan file is
-2. Share the doublecheck findings (and any fixes applied)
-3. Ask them to review and edit if needed
-4. Wait for explicit confirmation
-5. Do NOT begin work until confirmed
+1. Send the plan file to the user with SendUserFile (`display: 'render'` for inline rendering)
+2. Tell the user where the plan file is
+3. Share the doublecheck findings (and any fixes applied)
+4. Ask them to review and edit if needed
+5. Wait for explicit confirmation
+6. Do NOT begin work until confirmed
 
 ## Phase 7: Execute
 
@@ -146,6 +147,7 @@ Once confirmed:
 - Don't skip exploration
 - Don't start work during planning
 - Always run `/doublecheck` in Phase 5 — never skip it, no exceptions
+- After doublecheck, always send the plan file via SendUserFile (inline render)
 - Verify, don't assume
 - If unclear, ask the user (AskUserQuestion)
 - Get user confirmation before executing

@@ -20,8 +20,11 @@ the point of the tool — do not hand commands to the user to run, unless asked.
 
    ```
    ## hpc-launcher location
-   The `hpc` launcher (for the /hpc skill) is at: `<absolute path>`
+   The `hpc` launcher (for the /hpc skill) is at: `<path>`
    ```
+
+   Keep `<path>` `~`-relative when it's under home — that file is public, so a
+   machine-specific absolute won't travel (and needlessly shows the username).
 
 ## 2. Read the launcher's own docs
 
@@ -49,5 +52,9 @@ profile and `hpc-env.example`, not in your memory.
   auth, ask the user to load it once (`ssh-add` their key), then keep running the
   commands yourself.
 - A project needs a `.hpc.env` (run `hpc init`) before `hpc run` / `hpc test`.
+- `hpc cancel` refuses to kill a RUNNING job unless you pass `--force`. If you were
+  only cancelling because the job was stuck in the queue, the refusal means it has now
+  started — so the reason to cancel is gone; let it run. Only `--force` if you'd kill
+  it regardless of queue state (bugged code, wrong config, superseded run).
 
 ## 4. Carry out the user's request, following the docs you just read.

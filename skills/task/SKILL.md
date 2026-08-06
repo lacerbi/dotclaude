@@ -73,4 +73,15 @@ If deploying sub-agents for subtasks:
 ### 6. Verification
 After completing all checklist items, run `/doublecheck` to verify the work before marking the task fully complete.
 
+### 7. Task File Disposition
+
+Apply only to `TASK_*.md` files created by this skill, never to existing PLAN files.
+
+After `/doublecheck` passes:
+
+- Delete the TASK file if it contains only transient execution tracking, routine verification, and a completion summary.
+- If it records durable findings, decisions, constraints, or follow-ups, propose an appropriate destination based on repository conventions.
+- After approval, preserve the information there and delete the TASK file, unless archiving the file itself is appropriate.
+- Keep the file while work is incomplete or blocked.
+
 **Remember**: The checklist file is your required working tracker. Keep entries brief, link to files for details, and update continuously as you progress.
