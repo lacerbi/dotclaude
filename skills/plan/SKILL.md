@@ -48,7 +48,14 @@ After exploration:
 1. Read/verify key files and materials identified
 2. Confirm or refute hypotheses
 3. Build a mental model of the current state and what the task requires
-4. Identify documentation that must be created, updated, or extended as part of the work — not as an afterthought but as a deliverable
+4. Identify existing documentation that must be updated, and whether any new document has a distinct durable purpose
+
+Before proposing a new document:
+- Identify the durable audience or question it will serve and the information it will uniquely own.
+- Check project conventions and existing authoritative docs, plans, source comments, tests, TODOs,
+  and issues first.
+- Prefer updating an existing authoritative artifact when it can serve the same purpose.
+- Do not create a new artifact merely to restate the plan or record work performed.
 
 ## Phase 4: Plan Creation
 
@@ -109,7 +116,8 @@ Status: PENDING APPROVAL
 [Same structure]
 
 ## Documentation
-What docs need to be created, updated, or extended as part of this work. Include as steps in the relevant phase above, or as a dedicated phase if substantial. Remove this section only if the task genuinely has zero documentation impact.
+What existing documentation must be updated and, only when it has a distinct durable role, what new document must be created. For each new artifact, state what it uniquely owns and why an existing artifact cannot own it.
+Include documentation as steps in the relevant phase above, or as a dedicated phase if substantial. Remove this section only if the task genuinely has no documentation impact.
 
 ## Open Questions
 - [Unresolved questions for the user]
