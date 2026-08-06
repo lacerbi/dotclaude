@@ -14,6 +14,9 @@ $ARGUMENTS
 
 ## Your Task
 
+Treat the audit as read-only. Do not fix findings, edit files, create issues, or write an audit
+artifact unless the user explicitly asks for one.
+
 **Deploy specialized sub-agents as needed** to audit the specified files across these key areas. Use Opus for all audit tasks (Sonnet only for mechanical checks like linting output, test pass/fail status, or counting TODOs; never Haiku).
 
 ### 1. Correctness & Quality
@@ -38,10 +41,12 @@ $ARGUMENTS
 - Potential breaking changes
 - Areas needing immediate attention
 
-**Output**: Write a comprehensive audit report to an appropriately named markdown file `AUDIT_[descriptor]_[timestamp].md` (e.g., `AUDIT_docs_20241117.md`, `AUDIT_components_review.md`). Include:
+**Output**: Report the audit in the conversation by default. Include:
 - Executive summary
 - Detailed findings by area
 - Prioritized action items
 - Recommendations
 
-Also provide a brief summary in the conversation highlighting critical findings.
+If the user explicitly requests a file, write it at the repository's prescribed location or use
+`AUDIT_[descriptor]_[timestamp].md` when no convention exists, then also provide a brief summary in
+the conversation highlighting critical findings.

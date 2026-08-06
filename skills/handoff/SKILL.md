@@ -38,9 +38,17 @@ next decision, and what unblocks it.
 
 ## 5. Commit and push — the final gate
 
-Do this last, so the docs you wrote in 1–4 land too. Commit and push everything meant to be tracked:
+Do this last, so the docs you wrote in 1–4 land too. Commit and push everything from the handoff
+scope that is meant to be tracked:
 
-- `git status` clean; local `HEAD` == `origin` (no unpushed commits).
+- Follow repository Git instructions. Inspect the diff, distinguish task-owned changes from
+  unrelated user or agent work, stage intended files explicitly, and verify the staged diff before
+  committing.
+- Leave unrelated work untouched and unstaged. It may keep the repository dirty; report it rather
+  than treating repository-wide cleanliness as a handoff requirement.
+- Ensure every task-owned tracked change is committed. Fetch and compare `HEAD` with the branch's
+  configured upstream, not a remote name such as `origin`. Push the task commits so the upstream
+  contains them. If the branch has no configured upstream, ask before creating one.
 - **Respect `.gitignore`** — don't commit the local-by-design artifacts above. If a file is a mid-edit, or
   you're unsure it should be tracked, surface it and confirm before committing.
 

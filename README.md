@@ -13,7 +13,7 @@ Personal [skills](https://code.claude.com/docs/en/skills) for common Claude Code
 | [`/load <files>`](skills/load/SKILL.md) | Read files in full without summarization | Auto | Uses [`toks`](https://www.npmjs.com/package/toks) for token counting |
 | [`/audit <files>`](skills/audit/SKILL.md) | Analyze files for quality, consistency, and codebase integration | Explicit | - |
 | [`/doublecheck [focus]`](skills/doublecheck/SKILL.md) | Verify all changes meet requirements and preserve correctness | Auto | - |
-| [`/triage <feedback>`](skills/triage/SKILL.md) | Investigate external feedback, validate issues, fix what's real | Explicit | - |
+| [`/triage <feedback>`](skills/triage/SKILL.md) | Investigate feedback, validate issues, fix confirmed problems when requested | Explicit | - |
 | [`/handoff`](skills/handoff/SKILL.md) | Make work resumable from a clean checkout: commit/push, record in-flight async work, flag what isn't durable | Explicit | - |
 | [`/hpc`](skills/hpc/SKILL.md) | Launch and manage jobs on the HPC cluster | Explicit | Requires the `hpc` launcher tool |
 
