@@ -4,17 +4,23 @@ description: Deep verification that all changes meet requirements and preserve c
 allowed-tools: Bash(git diff:*), Bash(git status:*)
 argument-hint: [specific-focus-area]
 ---
-## Context
-- Current changes: !`git diff HEAD`
-- Modified files: !`git status --short`
 
-Note: The diff may include concurrent/independent changes from other agents. **By default, focus on reviewing the changes we made in this conversation** unless otherwise specified.
+## Context
+
+- Branch and files: !`git status --short --branch`
+- Unstaged changes: !`git diff`
+- Staged changes: !`git diff --cached`
+
+The injected diffs cover working-tree changes. If relevant work was committed during this conversation, inspect the corresponding commit or branch diff too. Focus on work from this conversation unless otherwise specified; unrelated changes may belong to the user or another agent.
 
 ## Your Task
 
 Perform a meticulous verification and comprehensive review of all work done. **Depending on the size and complexity of the verification, deploy one or more specialized sub-agents** to handle different aspects, split as appropriate for the task. Choose sub-agents appropriate for task complexity (see `CLAUDE.md` for agent selection guidance—verification tasks typically need Opus, maybe Sonnet for routine verifications, never Haiku).
 
+Establish the actual change scope before reviewing. Treat verification as read-only unless the user explicitly asks for fixes.
+
 Verify that:
+
 - All changes align with the original goals and requirements
 - Modifications preserve file integrity and correctness
 - Nothing is missing or requires additional updates
@@ -32,11 +38,13 @@ Go beyond surface-level correctness. Evaluate the work for:
 - **Hazard avoidance**: Identify footguns—things that look correct now but will mislead or break later (e.g., ambiguous naming, brittle assumptions, implicit dependencies, information that will drift out of sync).
 
 **Look beyond the immediate task.** Explore the surrounding project enough to catch:
+
 - Existing material that overlaps with or is affected by the changes
 - Patterns or conventions elsewhere that the changes should respect
 - Downstream consequences the author may not have considered
 
 For **code** specifically, also check:
+
 - Error handling and boundary conditions
 - Thread safety or concurrency concerns (if applicable)
 - Whether tests cover the new behavior adequately
@@ -44,6 +52,7 @@ For **code** specifically, also check:
 - Whether documentation (READMEs, guides, API docs, inline comments) needs updating or creation to reflect the changes
 
 For **plans and design documents**, also check:
+
 - Whether the proposed approach accounts for known constraints and prior decisions
 - Feasibility of each step and whether dependencies between steps are correctly sequenced
 - Whether the plan addresses verification and rollback
@@ -53,6 +62,6 @@ For **plans and design documents**, also check:
 
 <focus> $ARGUMENTS </focus>
 
-Provide a structured report highlighting what's working, any issues or concerns, and what still needs attention.
+Provide a structured report highlighting what's working, any issues or concerns, and what still needs attention. Include the checks run, checks skipped and why, and any residual risk.
 
 Be thorough but concise. Focus on actionable findings rather than minor stylistic preferences.
