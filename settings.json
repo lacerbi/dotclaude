@@ -4,6 +4,7 @@
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "theme": "dark-daltonized",
+  "verbose": false,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }
