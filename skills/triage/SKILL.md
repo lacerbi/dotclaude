@@ -18,7 +18,7 @@ $ARGUMENTS
 - Deploy specialized sub-agents to investigate each issue/part in parallel
 - Each sub-agent should focus on validating their specific issue
 - Use Opus for all investigation/validation (judging feedback correctness requires careful reasoning)
-- For fixes: handle directly, or delegate to Opus/Sonnet sub-agents depending on complexity
+- For fixes: handle directly, or delegate to Opus sub-agents (see Agent Selection in the global `CLAUDE.md`)
 - Coordinate findings before proceeding with fixes
 
 ### 1. Authority and Scope

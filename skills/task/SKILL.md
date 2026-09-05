@@ -1,7 +1,7 @@
 ---
 name: task
 description: Create and maintain a task checklist that tracks progress in real-time
-allowed-tools: Edit, Write, Bash(ls:*), Bash(cat:*)
+allowed-tools: Read, Edit, Write
 argument-hint: [task-description]
 ---
 ## Task
@@ -11,17 +11,9 @@ $ARGUMENTS
 
 ### 1. Use Existing Plan or Create Task Plan
 
-**If a PLAN file was provided or mentioned** (e.g., from a prior `/plan` command) with structured phases:
-- **Use the existing PLAN file** as your working document—do NOT create a separate TASK file
-- **Preserve ALL existing content**—edit in place to add tracking, never rewrite from scratch
-- Convert implementation bullet points to checkboxes for tracking (e.g., `- Item` → `- [ ] Item`)
-- Add new checklist items or sections if gaps become apparent
-- Continue to add items as needed during execution
-- Update status markers in place as you progress
+**If a PLAN file was provided or mentioned** (e.g., from a prior `/plan` command) with structured phases, it is your working document — do not create a separate TASK file.
 
-> **NEVER REPLACE A PLAN FILE.** If a plan file exists, keep ALL existing content intact—goals, file references, verification details, context, everything. You MUST edit in place: add checkboxes, append new tasks, update status markers, extend sections. But never delete, summarize, condense, or rewrite existing content. The plan is the user's work product.
->
-> **Common violation**: Replacing a plan section's prose, context, and details with bare checkboxes. The checkboxes go ALONGSIDE the existing content, not instead of it. If your edit removes more text than it adds, you are doing it wrong!
+**Never replace or condense a PLAN file.** It is the user's reviewed work product: goals, file references, verification details, rationale. Add tracking to it in place — convert implementation bullets to checkboxes (`- Item` → `- [ ] Item`), append new items or sections as gaps appear, update status markers as you progress — so that the checkboxes sit alongside the existing prose, never instead of it. An edit that removes more text than it adds is almost certainly wrong.
 
 **If no suitable PLAN file exists**, create a markdown file `TASK_[descriptor]_[timestamp].md` containing:
 - Task description
@@ -29,12 +21,9 @@ $ARGUMENTS
 - Success criteria
 - Any dependencies or prerequisites
 
-**KEEP IT BRIEF AND TO THE POINT**:
-- Each checklist item should be one concise line
-- Link to relevant files rather than explaining details: `[config](./src/config.js)`
-- No verbose descriptions - this is a tracking tool, not documentation
+Keep it brief: one concise line per item, links to files instead of explanations (`[config](./src/config.js)`). This is a tracking tool, not documentation.
 
-Format checklist items as:
+Status markers:
 - `[ ]` Not started
 - `[~]` In progress
 - `[x]` Complete
@@ -42,38 +31,28 @@ Format checklist items as:
 
 ### 2. Execute While Updating
 
-**CRITICAL**: You MUST update the checklist file after EVERY significant action:
-- Mark items as `[~]` when starting them
-- Mark items as `[x]` when completing them
-- Add new subtasks if discovered during work
-- Note any blockers or issues with `[!]`
-- Keep any notes extremely brief or link to files
+Update the checklist after every significant action — `[~]` when starting an item, `[x]` when done, `[!]` on blockers — and add subtasks as they surface. The file is the live record: sessions crash mid-run, and anyone (including a fresh session) must be able to read current progress from the file alone. Keep notes extremely brief or link to files.
 
-### 3. Work Pattern
-Follow this pattern throughout:
-1. Update checklist → Do work → Update checklist → Repeat
-2. The file is your live working document
-3. Anyone should be able to see current progress by reading the file
+### 3. Completion Expectations
 
-### 4. Completion Expectations
+Complete the full task/plan. Do not skip items, defer work, or stop halfway; minor deviations and unexpected issues are normal — handle them and continue. Stop early only for an overwhelming reason (core assumptions fundamentally wrong, blocking dependencies unresolvable).
 
-**Complete the full task/plan.** Do not arbitrarily skip items, defer work, or stop halfway. Minor deviations and unexpected issues are normal—handle them and continue. Only stop early if an overwhelming reason emerges during implementation (e.g., core assumptions are fundamentally wrong, blocking dependencies are unresolvable).
+When finished, the file shows the final status of all items, any unresolved issues (with explanation if incomplete), and a brief completion summary.
 
-When finished, ensure the file shows:
-- Final status of all items
-- Any unresolved issues (with explanation if incomplete)
-- Brief summary of completion
+### 4. Sub-Agent Usage
 
-### 5. Sub-Agent Usage
-If deploying sub-agents for subtasks:
-- Update checklist to `[~]` before dispatching
-- Sub-agent updates checklist to `[x]` or `[!]` upon completion
-- Use Opus for complex subtasks, Sonnet for standard implementation (Haiku only for pure read-only information gathering with no interpretation needed—or just do trivial tasks directly)
+Sub-agents are Opus by default (see Agent Selection in the global `CLAUDE.md`). When the plan states an executor per phase, follow it: delegated phases go to Opus sub-agents, orchestrator phases you do yourself. The delegated phase's text is the core of the sub-agent's brief; add only what is situational (current tree state, conventions learned so far, return format, files another agent owns).
 
-### 6. Verification
-After completing all checklist items, run `/doublecheck` to verify the work before marking the task fully complete.
+A phase written for a different model than you is not ready to execute. In particular, a `Fable (orchestrator)` phase has no step list; if you are Opus, expand it in the plan to explicit steps with files, commands, and acceptance checks, tell the user you did so, and only then execute it.
 
-### 7. Task File Disposition
+- Update the checklist to `[~]` before dispatching
+- The sub-agent (or you, from its result) marks `[x]` or `[!]` on completion
+
+### 5. Verification
+
+After completing all checklist items, run `/doublecheck` before marking the task complete. It briefs fresh-context reviewers rather than relying on your own recollection, and it consistently catches problems the executor missed.
+
+### 6. Task File Disposition
 
 Apply only to `TASK_*.md` files created by this skill, never to existing PLAN files.
 
@@ -83,5 +62,3 @@ After `/doublecheck` passes:
 - If it records durable findings, decisions, constraints, or follow-ups, propose an appropriate destination based on repository conventions.
 - After approval, preserve the information there and delete the TASK file, unless archiving the file itself is appropriate.
 - Keep the file while work is incomplete or blocked.
-
-**Remember**: The checklist file is your required working tracker. Keep entries brief, link to files for details, and update continuously as you progress.

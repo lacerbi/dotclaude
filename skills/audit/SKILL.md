@@ -17,7 +17,7 @@ $ARGUMENTS
 Treat the audit as read-only. Do not fix findings, edit files, create issues, or write an audit
 artifact unless the user explicitly asks for one.
 
-**Deploy specialized sub-agents as needed** to audit the specified files across these key areas. Use Opus for all audit tasks (Sonnet only for mechanical checks like linting output, test pass/fail status, or counting TODOs; never Haiku).
+**Deploy specialized sub-agents as needed** to audit the specified files across these key areas. Sub-agents are Opus (see Agent Selection in the global `CLAUDE.md`).
 
 ### 1. Correctness & Quality
 - Bugs, errors, or logical flaws
