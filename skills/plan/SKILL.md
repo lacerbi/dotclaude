@@ -67,9 +67,11 @@ the phase is written for it:
 
 - **Opus-executed** (an Opus orchestrator, or a sub-agent delegated by Fable): explicit numbered
   steps with file paths, exact commands, and acceptance checks, so the executor never has to re-derive
-  anything. The phase text is the durable core of that sub-agent's brief; the spawn-time brief adds only
-  what is situational (current tree state, conventions learned during execution, return format, files
-  another agent owns).
+  anything, plus what to do when a check contradicts an assumption the steps rest on — by default, stop
+  and report the mismatch rather than improvise around it or push on with steps that no longer apply.
+  The phase text is the durable core of that sub-agent's brief; the spawn-time brief adds only what is
+  situational (current tree state, conventions learned during execution, return format, files another
+  agent owns).
 - **Fable-executed**: goal, constraints, acceptance criteria, and the decisions that bound the work.
   No step list — Fable fills the steps in as it goes. If Opus later picks up such a phase, it must be
   expanded to the Opus standard first (`/task` handles this).

@@ -43,7 +43,7 @@ When finished, the file shows the final status of all items, any unresolved issu
 
 Sub-agents are Opus by default (see Agent Selection in the global `CLAUDE.md`). When the plan states an executor per phase, follow it: delegated phases go to Opus sub-agents, orchestrator phases you do yourself. The delegated phase's text is the core of the sub-agent's brief; add only what is situational (current tree state, conventions learned so far, return format, files another agent owns).
 
-A phase written for a different model than you is not ready to execute. In particular, a `Fable (orchestrator)` phase has no step list; if you are Opus, expand it in the plan to explicit steps with files, commands, and acceptance checks, tell the user you did so, and only then execute it.
+A `Fable (orchestrator)` phase has no step list, so it is not ready for Opus to execute: if you are Opus, expand it in the plan to explicit steps with files, commands, and acceptance checks, tell the user you did so, and only then execute it. A phase that already has that detail needs no rewrite because the executor's model differs.
 
 - Update the checklist to `[~]` before dispatching
 - The sub-agent (or you, from its result) marks `[x]` or `[!]` on completion
