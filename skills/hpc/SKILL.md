@@ -33,6 +33,12 @@ the point of the tool — do not hand commands to the user to run, unless asked.
   (`HPC_CLUSTER` in `.hpc.env`; `hpc clusters` lists them). Read it when running or
   configuring a job — partitions, filesystem, gotchas (e.g. Roihu's split login
   hosts + 24 h SSH cert).
+- A cluster can have notes without a launcher profile: a `clusters/<name>.md`
+  with no `<name>.env` beside it, for a cluster `hpc` does not drive. For work
+  on such a cluster, read its notes and follow them (how to connect, the rules
+  for using it, what to check) instead of running `hpc`. List
+  `<path>/clusters/` to see which clusters have notes. Those notes hold
+  private details: never copy them into a public repository.
 - `<path>/AGENTS.md`, `DESIGN.md`, `TODO.md` — only when you need rationale,
   limitations, or current status.
 
