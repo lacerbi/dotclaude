@@ -47,6 +47,24 @@ Skills are published one at a time. A new `skills/<name>/` is ignored by default
 add `!skills/<name>/**` to `.gitignore` to publish it. This keeps skills that carry
 machine paths, hostnames, or private-project details local unless you opt in.
 
+## Global instructions
+
+[`CLAUDE.md`](CLAUDE.md) holds the user-level instructions Claude Code loads in every
+local session.
+
+## Remote environments
+
+[`remote/`](remote/) holds the config for Claude Code's cloud containers and
+environments. [`remote/setup.sh`](remote/setup.sh) is the environment setup script:
+it clones this repository and installs the skills (minus `/hpc`, whose launcher is
+not available there), `bin/read-files` with its `toks` dependency, and
+[`remote/CLAUDE.md`](remote/CLAUDE.md) as the global `~/.claude/CLAUDE.md`.
+Every step is soft, so a failed install never blocks the session from starting.
+
+`remote/CLAUDE.md` is a trimmed copy of the root `CLAUDE.md` that leaves out the
+rules tied to the local Windows machine and HPC setup. A rule that applies in both
+places has to be edited in both files.
+
 ## License
 
 [MIT](LICENSE)

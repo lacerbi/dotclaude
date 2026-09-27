@@ -4,6 +4,9 @@
 # Except these
 !.gitignore
 !CLAUDE.md
+!remote/
+!remote/CLAUDE.md
+!remote/setup.sh
 !LICENSE
 !settings.json
 !README.md

@@ -2,11 +2,15 @@
   "feedbackDrafts": "off",
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
+    }
+  },
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "theme": "dark-daltonized",
   "verbose": false,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "model": "claude-fable-5-1[1m]"
+  "skipAutoPermissionPrompt": true
 }
