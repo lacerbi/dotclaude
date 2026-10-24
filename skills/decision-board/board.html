@@ -362,10 +362,26 @@ textarea[disabled] { background: var(--sunken); }
       if (editable() && round() === r) save(id, "draft", r);
     }, delay);
   }
-  // Resolves true when the answer was written, false when the write failed or its round no longer takes
-  // answers. Once written, and not edited since, the answer is no longer a draft: the page shows the saved
-  // answer, which another tab can change.
-  function save(id, state, r) {
+  // Whether round r is open on the server: board/meta is at round r and rounds/r<r> doesn't exist yet.
+  // `strict` (for Submit) refuses an answer from a cache. Writes that start together share one read; a read
+  // started more than a moment ago isn't shared.
+  let openRead = null;
+  function roundOpen(r, strict) {
+    const now = Date.now();
+    if (!strict && openRead && openRead.r === r && now - openRead.t < 250) return openRead.p;
+    const p = Promise.all([S.db.doc("board/meta").get(), S.db.doc("rounds/r" + r).get()]).then(([m, s]) => {
+      if (strict && ((m.metadata && m.metadata.fromCache) || (s.metadata && s.metadata.fromCache))) throw new Error(SUBMIT_FAILED);
+      return (Number(((m.exists && m.data()) || {}).round) || 1) === r && !s.exists;
+    });
+    if (!strict) openRead = { r, t: now, p };
+    return p;
+  }
+  // Resolves true when the answer was written, and false when the write failed or its round no longer takes
+  // answers. A write from Submit runs only while `guard` says Submit's lease still holds; any other write
+  // first asks the server whether its round is still open, since this view hears of a Submit from another
+  // tab only after a delay. Once written, and not edited since, the answer is no longer a draft: the page
+  // shows the saved answer, which another tab can change.
+  function save(id, state, r, guard) {
     const a = S.drafts[id];
     if (!a || !S.db) return Promise.resolve(true);
     const rev = S.rev[id];
@@ -380,12 +396,12 @@ textarea[disabled] { background: var(--sunken); }
       updatedAt: new Date().toISOString(),
     };
     const p = (chains[id] || Promise.resolve(true))
-      .then(() => {
+      .then(async () => {
         if (!writable(at)) return false;
-        return S.db.doc("responses/" + id).set(body).then(() => {
-          if (S.rev[id] === rev) { delete S.dirty[id]; delete S.drafts[id]; }
-          S.error = ""; renderBar(); return true;
-        });
+        if (guard ? !guard() : (!(await roundOpen(at)) || !writable(at))) return false;
+        await S.db.doc("responses/" + id).set(body);
+        if (S.rev[id] === rev) { delete S.dirty[id]; delete S.drafts[id]; }
+        S.error = ""; renderBar(); return true;
       })
       .catch((err) => { S.error = errText(err); renderBar(); return false; });
     chains[id] = p;
@@ -418,6 +434,13 @@ textarea[disabled] { background: var(--sunken); }
       return e && UNSENT.has(e.code) ? "unsent" : "unknown";
     }
   }
+  // What this view knows of a round's notification only grows: "sent" over "unknown" over "unsent".
+  const NOTICE_RANK = { unsent: 0, unknown: 1, sent: 2 };
+  function noteSend(r, out) {
+    const k = "r" + r;
+    if (!S.notice[k] || NOTICE_RANK[out] > NOTICE_RANK[S.notice[k]]) S.notice[k] = out;
+    return S.notice[k];
+  }
   async function recordNotice(r, out) {
     if (out === "sent") await S.db.doc("rounds/r" + r).update({ notified: true });
     if (out === "unknown") await S.db.doc("rounds/r" + r).update({ notifyUnknown: true });
@@ -426,6 +449,7 @@ textarea[disabled] { background: var(--sunken); }
   const SUBMIT_FAILED = "The round wasn't submitted. Check your connection and submit again.";
   const BUSY = "This board is being submitted from another tab or device. Look again in a moment.";
   const MOVED = "This round changed while it was being submitted, so it wasn't submitted again.";
+  const LEASE_MS = 60000;
   async function submit() {
     if (!editable()) return;
     const r = round();
@@ -435,28 +459,38 @@ textarea[disabled] { background: var(--sunken); }
     const still = () => { if (round() !== r || locked()) throw new Error(MOVED); };
     try {
       // One tab or device submits at a time: a short lease on locks/submit, taken before anything is
-      // written and renewed before each later step. Without the lease nothing is submitted.
+      // written and renewed before each later step. Submit writes only while the lease surely holds, by
+      // this view's clock with a margin. After each renewal the round is read again from the server: a
+      // lease that lapsed may have let another tab submit it. Without the lease nothing is submitted.
       const lockRef = S.db.doc("locks/submit");
+      let until = 0;
+      const leased = () => Date.now() < until;
       const hold = async () => {
-        if (typeof lockRef.acquire !== "function") return;
-        const lease = await lockRef.acquire({ holder: TAB, ttlMs: 60000 });
-        if (!lease.acquired) throw new Error(BUSY);
+        if (typeof lockRef.acquire === "function") {
+          const asked = Date.now();
+          const lease = await lockRef.acquire({ holder: TAB, ttlMs: LEASE_MS });
+          if (!lease.acquired) throw new Error(BUSY);
+          until = asked + LEASE_MS - 10000;
+        } else {
+          until = Infinity;
+        }
+        if (!(await roundOpen(r, true))) throw new Error(MOVED);
+        still();
+        if (!leased()) throw new Error(SUBMIT_FAILED);
       };
       await hold();
-      // The round as the server has it, not as this view last saw it.
-      const [metaSnap, roundSnap] = await Promise.all([S.db.doc("board/meta").get(), S.db.doc("rounds/r" + r).get()]);
-      const serverRound = Number(((metaSnap.exists && metaSnap.data()) || {}).round) || 1;
-      if (serverRound !== r || roundSnap.exists) throw new Error(MOVED);
-      still();
       // Every edit not yet saved, an emptied answer or an earlier failed write included, is written first.
       for (const id of Object.keys(timers)) { clearTimeout(timers[id]); delete timers[id]; }
-      const flushed = await Promise.all(Object.keys(S.dirty).map((id) => save(id, "draft", r)));
+      const flushed = await Promise.all(Object.keys(S.dirty).map((id) => save(id, "draft", r, leased)));
       await Promise.all(Object.values(chains));
       still();
-      if (flushed.includes(false)) throw new Error(SAVE_FAILED);
+      if (flushed.includes(false)) {
+        if (!(await roundOpen(r, true))) throw new Error(MOVED);
+        throw new Error(SAVE_FAILED);
+      }
       await hold();
-      still();
-      // Nothing waits from here until the writes start, so the answers written are the ones counted.
+      // The answers are read here without a wait, and each write takes its answer as it is now, so the
+      // answers written are the ones counted.
       const answered = openItems().filter((it) => isAnswered(answerFor(it.id)));
       const rest = openItems().length - answered.length;
       const general = hasGeneral();
@@ -464,11 +498,10 @@ textarea[disabled] { background: var(--sunken); }
       for (const id of ids) {
         if (!S.drafts[id]) S.drafts[id] = { ...answerFor(id) };
       }
-      const saved = await Promise.all(ids.map((id) => save(id, "submitted", r)));
+      const saved = await Promise.all(ids.map((id) => save(id, "submitted", r, leased)));
       still();
       if (saved.includes(false)) throw new Error(SAVE_FAILED);
       await hold();
-      still();
       await S.db.doc("rounds/r" + r).set({
         round: r,
         submittedAt: new Date().toISOString(),
@@ -478,8 +511,7 @@ textarea[disabled] { background: var(--sunken); }
       });
       S.notifying = true;
       renderBar();
-      const out = await notifyClaude(r, answered.length, rest, general);
-      S.notice["r" + r] = out;
+      const out = noteSend(r, await notifyClaude(r, answered.length, rest, general));
       // When recording the outcome fails, this view still shows it; other views offer to notify again.
       try { await recordNotice(r, out); } catch (e) { /* kept in S.notice */ }
     } catch (err) {
@@ -498,9 +530,9 @@ textarea[disabled] { background: var(--sunken); }
     S.notifying = true;
     renderBar();
     const out = await notifyClaude(r, doc.answered || 0, doc.open || 0, !!doc.general);
-    S.notice["r" + r] = out;
+    const known = noteSend(r, out);
     if (out === "unsent") S.error = "Claude couldn't be notified from here. Tell Claude in the terminal.";
-    try { await recordNotice(r, out); } catch (e) { /* kept in S.notice */ }
+    try { await recordNotice(r, known); } catch (e) { /* kept in S.notice */ }
     S.notifying = false;
     renderBar();
   }

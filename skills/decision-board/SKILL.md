@@ -106,7 +106,7 @@ A board closes when the work it serves is finished: when the plan or task file i
 
 `board/general`: the box's `thread` and `changedRound`, as on a point.
 
-`rounds/r<N>`: written on Submit: `round`, `submittedAt`, `answered`, `open`, `general`, and `notified` once a session received it or `notifyUnknown` when the send may or may not have gone through. Without `notified`, the page offers a Notify Claude button, which sends it again from the user's tap, and a "What to tell Claude" line to copy into a terminal; before Submit, it says when no session is listening.
+`rounds/r<N>`: written on Submit: `round`, `submittedAt`, `answered`, `open`, `general`, and `notified` once a session received it or `notifyUnknown` when the send may or may not have gone through. Until a send is confirmed, the page offers a Notify Claude button, which sends it again from the user's tap, and a "What to tell Claude" line to copy into a terminal. The view that sent it counts a send as confirmed even when writing `notified` failed, so a round without `notified` may still have reached a session. Before Submit, the page says when no session is listening.
 
 `locks/submit`: a short lease the page takes while it submits, so one tab or device submits a round at a time.
 
