@@ -244,6 +244,11 @@ def cmd_round(args):
                  "every page of it")
         if submitted.get("general") and not answered(responses.get("general"), n):
             fail(f"round {n} was submitted with a general comment, but the snapshot has none: save responses/ again")
+    # Every answer belongs to a point in the snapshot; one that doesn't means the items listing is short.
+    orphans = sorted(pid for pid, r in responses.items() if pid != "general" and pid not in items and answered(r, n))
+    if orphans:
+        fail(f"the snapshot has answers for points it doesn't hold ({', '.join(orphans)}): save items/ again, "
+             "every page of it")
     known = set(spec) - {"round", "settle", "reply", "update", "add", "general_reply", "round_note"}
     if known:
         fail(f"unknown keys in the round file: {', '.join(sorted(known))}")
@@ -260,9 +265,6 @@ def cmd_round(args):
     # The user's answers go into each point's thread.
     for pid, resp in responses.items():
         if pid == "general" or not answered(resp, n):
-            continue
-        if pid not in items:
-            print(f"note: an answer for {pid!r}, which is not on the board, is left out", file=sys.stderr)
             continue
         doc = doc_of(pid)
         if not has_entry(doc["thread"], "you", n):
@@ -311,7 +313,7 @@ def cmd_round(args):
                 or (doc.get("status") == "settled" and doc.get("settledRound") == n)
                 or has_entry(doc.get("thread") or [], "claude", n))
     left = sorted(pid for pid, r in responses.items()
-                  if pid != "general" and pid in items and answered(r, n) and not covered(pid))
+                  if pid != "general" and answered(r, n) and not covered(pid))
     if left:
         fail("these answers have neither a settle nor a reply in the round file: " + ", ".join(left))
     gresp = responses.get("general")
@@ -319,7 +321,8 @@ def cmd_round(args):
             and not has_entry((snap["general"] or {}).get("thread") or [], "claude", n)):
         fail("the general comment has no general_reply in the round file")
 
-    # New points. One already on the board as the round file has it was added by an earlier run.
+    # New points. One on the board exactly as this add would write it, still open and with no history, was
+    # added by an earlier run; any other point with its id is a different point.
     added = []
     taken = set()
     top = max([d.get("order", 0) for d in items.values()] + [0])
@@ -328,10 +331,10 @@ def cmd_round(args):
         if pid is None:
             fail("a new point has no id")
         if pid in items:
-            if all(items[pid].get(k) == v for k, v in raw.items() if k != "id"):
+            if new_point(raw, items[pid].get("order"))[1] == items[pid]:
                 print(f"note: {pid!r} is already on the board, from an earlier run of this round", file=sys.stderr)
                 continue
-            fail(f"point id {pid!r} is already on the board with other content")
+            fail(f"point id {pid!r} is already on the board as a different point; give the new point another id")
         check_point(pid, raw, taken)
         taken.add(pid)
         top += 10

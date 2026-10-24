@@ -288,18 +288,25 @@ textarea[disabled] { background: var(--sunken); }
   const S = {
     db: null, dbMissing: false, comments: null, canSend: "",
     meta: null, general: null, items: null, responses: dict(), rounds: dict(),
-    loaded: { meta: false, responses: false, rounds: false },
-    // An answer edited here: drafts holds it, rev counts its edits, dirty marks it until a write of it succeeds.
+    // Whether each subscription the answers depend on has a definitive snapshot and is still live.
+    loaded: { meta: false, items: false, responses: false, rounds: false },
+    // An answer edited here: drafts holds it, rev numbers its last edit, dirty marks it until a write of it succeeds.
     drafts: dict(), rev: dict(), dirty: dict(), draftRound: null,
+    // What this view's notification of each round did ("sent", "unsent" or "unknown"), also when recording it failed.
+    notice: dict(),
     tab: null, submitting: false, notifying: false,
     error: "",
   };
   const TAB = "tab-" + Math.random().toString(36).slice(2);
+  let editSeq = 0;  // numbers every edit, across rounds, so a write's acknowledgement matches only its own edit
   const round = () => (S.meta && Number(S.meta.round)) || 1;
   const locked = () => !!S.rounds["r" + round()];
-  const ready = () => !!S.db && S.items !== null && S.loaded.meta && S.loaded.responses && S.loaded.rounds;
-  // Answers change only once the open round and its saved answers are known, and not during a Submit.
+  const ready = () => !!S.db && S.items !== null && S.loaded.meta && S.loaded.items && S.loaded.responses && S.loaded.rounds;
+  // Answers change only once the open round, its points and its saved answers are known, and not during a Submit.
   const editable = () => ready() && !locked() && !S.submitting;
+  // Whether an answer for round r can still be written. Checked when each write runs, not when it is queued:
+  // the round can be submitted from another tab, or move on, while a write waits its turn.
+  const writable = (r) => ready() && round() === r && !locked();
   const isCall = (it) => it.kind === "call";
   const openItems = () => (S.items || []).filter((it) => it.status !== "settled");
   const settledItems = () => (S.items || []).filter((it) => it.status === "settled");
@@ -330,12 +337,12 @@ textarea[disabled] { background: var(--sunken); }
   }
   const remainingProposals = () => openItems().filter((it) => !isCall(it) && !isAnswered(answerFor(it.id)) && acceptAnswer(it));
 
-  function errText(err) {
+  function errText(err, fallback) {
     const code = err && err.code;
     if (code === "invalid_argument" || code === "not_granted") return "Your answers can't be saved from this view. Open the page on claude.ai, signed in as its owner.";
     if (code === "quota_exceeded") return "The page's storage is full, so this answer wasn't saved.";
     if (code === "revoked") return "Access to this page changed while it was open. Reload to continue.";
-    return "An answer didn't save. Check your connection; it saves again on your next change.";
+    return fallback || "An answer didn't save. Check your connection; it saves again on your next change.";
   }
 
   // ---------- saving ----------
@@ -343,7 +350,7 @@ textarea[disabled] { background: var(--sunken); }
   const chains = dict();
   function edit(id, a) {
     S.drafts[id] = a;
-    S.rev[id] = (S.rev[id] || 0) + 1;
+    S.rev[id] = ++editSeq;
     S.dirty[id] = true;
   }
   function queueSave(id, delay) {
@@ -355,14 +362,16 @@ textarea[disabled] { background: var(--sunken); }
       if (editable() && round() === r) save(id, "draft", r);
     }, delay);
   }
-  // Resolves true when the answer was written, false when the write failed. Once written, and not edited
-  // since, the answer is no longer a draft: the page shows the saved answer, which another tab can change.
+  // Resolves true when the answer was written, false when the write failed or its round no longer takes
+  // answers. Once written, and not edited since, the answer is no longer a draft: the page shows the saved
+  // answer, which another tab can change.
   function save(id, state, r) {
     const a = S.drafts[id];
     if (!a || !S.db) return Promise.resolve(true);
     const rev = S.rev[id];
+    const at = r || round();
     const body = {
-      round: r || round(),
+      round: at,
       // The general comments box has no verdict: its answer is its text.
       verdict: id === "general" ? (a.text.trim() ? "discuss" : "") : a.verdict || (a.text.trim() ? "discuss" : ""),
       option: a.option || "",
@@ -371,11 +380,14 @@ textarea[disabled] { background: var(--sunken); }
       updatedAt: new Date().toISOString(),
     };
     const p = (chains[id] || Promise.resolve(true))
-      .then(() => S.db.doc("responses/" + id).set(body))
       .then(() => {
-        if (S.rev[id] === rev) { delete S.dirty[id]; delete S.drafts[id]; }
-        S.error = ""; renderBar(); return true;
-      }, (err) => { S.error = errText(err); renderBar(); return false; });
+        if (!writable(at)) return false;
+        return S.db.doc("responses/" + id).set(body).then(() => {
+          if (S.rev[id] === rev) { delete S.dirty[id]; delete S.drafts[id]; }
+          S.error = ""; renderBar(); return true;
+        });
+      })
+      .catch((err) => { S.error = errText(err); renderBar(); return false; });
     chains[id] = p;
     return p;
   }
@@ -411,39 +423,52 @@ textarea[disabled] { background: var(--sunken); }
     if (out === "unknown") await S.db.doc("rounds/r" + r).update({ notifyUnknown: true });
   }
   const SAVE_FAILED = "Some answers didn't save, so the round wasn't submitted. Check your connection and submit again.";
+  const SUBMIT_FAILED = "The round wasn't submitted. Check your connection and submit again.";
+  const BUSY = "This board is being submitted from another tab or device. Look again in a moment.";
+  const MOVED = "This round changed while it was being submitted, so it wasn't submitted again.";
   async function submit() {
     if (!editable()) return;
     const r = round();
     S.submitting = true;
     render();
+    // Another tab or Claude can move the board on during any wait, so the round is checked after each.
+    const still = () => { if (round() !== r || locked()) throw new Error(MOVED); };
     try {
-      // One tab or device submits at a time: a short lease on locks/submit.
+      // One tab or device submits at a time: a short lease on locks/submit, taken before anything is
+      // written and renewed before each later step. Without the lease nothing is submitted.
       const lockRef = S.db.doc("locks/submit");
-      if (typeof lockRef.acquire === "function") {
-        let lease = { acquired: true };
-        try { lease = await lockRef.acquire({ holder: TAB, ttlMs: 60000 }); } catch (e) { /* no lease here: go on */ }
-        if (!lease.acquired) throw new Error("This board is being submitted from another tab or device. Look again in a moment.");
-      }
+      const hold = async () => {
+        if (typeof lockRef.acquire !== "function") return;
+        const lease = await lockRef.acquire({ holder: TAB, ttlMs: 60000 });
+        if (!lease.acquired) throw new Error(BUSY);
+      };
+      await hold();
       // The round as the server has it, not as this view last saw it.
       const [metaSnap, roundSnap] = await Promise.all([S.db.doc("board/meta").get(), S.db.doc("rounds/r" + r).get()]);
       const serverRound = Number(((metaSnap.exists && metaSnap.data()) || {}).round) || 1;
-      if (serverRound !== r || roundSnap.exists) {
-        throw new Error("This round changed while it was being submitted, so it wasn't submitted again.");
-      }
+      if (serverRound !== r || roundSnap.exists) throw new Error(MOVED);
+      still();
       // Every edit not yet saved, an emptied answer or an earlier failed write included, is written first.
       for (const id of Object.keys(timers)) { clearTimeout(timers[id]); delete timers[id]; }
       const flushed = await Promise.all(Object.keys(S.dirty).map((id) => save(id, "draft", r)));
       await Promise.all(Object.values(chains));
+      still();
       if (flushed.includes(false)) throw new Error(SAVE_FAILED);
+      await hold();
+      still();
+      // Nothing waits from here until the writes start, so the answers written are the ones counted.
       const answered = openItems().filter((it) => isAnswered(answerFor(it.id)));
+      const rest = openItems().length - answered.length;
       const general = hasGeneral();
       const ids = answered.map((it) => it.id).concat(general ? ["general"] : []);
       for (const id of ids) {
         if (!S.drafts[id]) S.drafts[id] = { ...answerFor(id) };
       }
       const saved = await Promise.all(ids.map((id) => save(id, "submitted", r)));
+      still();
       if (saved.includes(false)) throw new Error(SAVE_FAILED);
-      const rest = openItems().length - answered.length;
+      await hold();
+      still();
       await S.db.doc("rounds/r" + r).set({
         round: r,
         submittedAt: new Date().toISOString(),
@@ -453,9 +478,12 @@ textarea[disabled] { background: var(--sunken); }
       });
       S.notifying = true;
       renderBar();
-      await recordNotice(r, await notifyClaude(r, answered.length, rest, general));
+      const out = await notifyClaude(r, answered.length, rest, general);
+      S.notice["r" + r] = out;
+      // When recording the outcome fails, this view still shows it; other views offer to notify again.
+      try { await recordNotice(r, out); } catch (e) { /* kept in S.notice */ }
     } catch (err) {
-      S.error = err && err.code ? errText(err) : (err && err.message) || errText(err);
+      S.error = err && err.code ? errText(err, SUBMIT_FAILED) : (err && err.message) || SUBMIT_FAILED;
     }
     S.notifying = false;
     S.submitting = false;
@@ -466,16 +494,13 @@ textarea[disabled] { background: var(--sunken); }
   async function notifyAgain() {
     const r = round();
     const doc = S.rounds["r" + r];
-    if (!doc || doc.notified || S.notifying || S.submitting) return;
+    if (!doc || doc.notified || S.notice["r" + r] === "sent" || S.notifying || S.submitting) return;
     S.notifying = true;
     renderBar();
     const out = await notifyClaude(r, doc.answered || 0, doc.open || 0, !!doc.general);
-    try {
-      await recordNotice(r, out);
-      if (out === "unsent") S.error = "Claude couldn't be notified from here. Tell Claude in the terminal.";
-    } catch (e) {
-      S.error = errText(e);
-    }
+    S.notice["r" + r] = out;
+    if (out === "unsent") S.error = "Claude couldn't be notified from here. Tell Claude in the terminal.";
+    try { await recordNotice(r, out); } catch (e) { /* kept in S.notice */ }
     S.notifying = false;
     renderBar();
   }
@@ -707,19 +732,21 @@ textarea[disabled] { background: var(--sunken); }
     if (!ready()) { text.innerHTML = "Connecting…" + err; actions.innerHTML = ""; return; }
     if (locked()) {
       const r = S.rounds["r" + round()];
+      const seen = S.notice["r" + round()];
+      const notified = r.notified || seen === "sent";
       let next = "Claude updates this page when it replies.";
       let act = "";
-      if (!r.notified) {
+      if (!notified) {
         if (S.submitting || S.notifying) {
           next = "Notifying Claude…";
         } else {
-          next = r.notifyUnknown ? "Notification not confirmed." : "Claude wasn't notified.";
+          next = r.notifyUnknown || seen === "unknown" ? "Notification not confirmed." : "Claude wasn't notified.";
           if (S.canSend === "available") act = `<button class="btn" id="btn-notify">Notify Claude</button>`;
           else next += " Tell Claude in the terminal.";
         }
       }
       // A line to give a Claude session in the terminal, when no session heard this Submit.
-      const tell = !r.notified && !S.submitting && !S.notifying
+      const tell = !notified && !S.submitting && !S.notifying
         ? `<details class="tell"${S.tellOpen ? " open" : ""}><summary>What to tell Claude</summary>` +
           `<code class="tell-line">Resume the board "${esc(boardTitle())}"; round ${round()} is submitted.</code></details>`
         : "";
@@ -752,7 +779,9 @@ textarea[disabled] { background: var(--sunken); }
   }
 
   function render() {
-    if (S.draftRound !== round()) { S.drafts = dict(); S.rev = dict(); S.dirty = dict(); S.draftRound = round(); }
+    // A new round starts with no drafts. So does a round submitted from another tab or device: its cards
+    // show the answers that were submitted.
+    if (S.draftRound !== round() || (locked() && !S.submitting)) { S.drafts = dict(); S.dirty = dict(); S.draftRound = round(); }
     renderHeader();
     renderTabs();
     renderList();
@@ -840,7 +869,27 @@ textarea[disabled] { background: var(--sunken); }
 
   // ---------- data ----------
   render();
-  const onErr = (err) => { S.error = errText(err); renderBar(); };
+  const LOST = "The page lost its connection to the board. Reload it to continue.";
+  // One subscription. With a key, the answers depend on it: they are editable only once it has delivered a
+  // definitive snapshot, not the first pages from a cache, and stop being editable when it dies. A
+  // subscription that dies is opened again, up to five times, unless its error is final. `next` also gets
+  // whether the subscription had no definitive snapshot before this one.
+  function listen(key, ref, next) {
+    let tries = 0;
+    const open = () => ref.onSnapshot((s) => {
+      const first = !key || !S.loaded[key];
+      if (key && !s.metadata.fromCache) { S.loaded[key] = true; tries = 0; }
+      next(s, first);
+    }, (err) => {
+      if (key) S.loaded[key] = false;
+      const code = err && err.code;
+      const final = code === "revoked" || code === "invalid_argument" || tries >= 5;
+      if (final) S.error = errText(err, LOST);
+      render();
+      if (!final) { tries++; setTimeout(open, 1000 * 2 ** tries + Math.random() * 1000); }
+    });
+    open();
+  }
   const boot = async () => {
     const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
     if (!db) { S.dbMissing = true; render(); return; }
@@ -851,36 +900,31 @@ textarea[disabled] { background: var(--sunken); }
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkSend(); });
       setInterval(() => { if (document.visibilityState === "visible") checkSend(); }, 60000);
     }, () => {});
-    // Answers become editable only on definitive snapshots, not on the first pages from a cache.
-    db.doc("board/meta").onSnapshot((s) => {
+    listen("meta", db.doc("board/meta"), (s) => {
       S.meta = s.exists ? s.data() : {};
-      if (!s.metadata.fromCache) S.loaded.meta = true;
       render();
-    }, onErr);
-    db.doc("board/general").onSnapshot((s) => { S.general = s.exists ? s.data() : null; renderGeneral(); }, onErr);
-    db.collection("items").orderBy("order").onSnapshot((q) => {
+    });
+    listen(null, db.doc("board/general"), (s) => { S.general = s.exists ? s.data() : null; renderGeneral(); });
+    listen("items", db.collection("items").orderBy("order"), (q) => {
       S.items = q.docs.map((d) => Object.assign({ id: d.id }, d.data()));
       render();
-    }, onErr);
-    db.collection("responses").onSnapshot((q) => {
+    });
+    listen("responses", db.collection("responses"), (q, first) => {
       const prev = S.responses;
       const m = dict();
       q.docs.forEach((d) => { m[d.id] = d.data(); });
       S.responses = m;
       // Answers that come from outside this view (the first load, another tab) are drawn into the cards.
-      const first = !S.loaded.responses;
-      if (!q.metadata.fromCache) S.loaded.responses = true;
       const outside = Object.keys(m).some((id) => !S.drafts[id] && JSON.stringify(m[id]) !== JSON.stringify(prev[id]));
       if (first || outside) render();
       else if (!q.metadata.hasPendingWrites) { renderHeader(); renderBar(); }
-    }, onErr);
-    db.collection("rounds").onSnapshot((q) => {
+    });
+    listen("rounds", db.collection("rounds"), (q) => {
       const m = dict();
       q.docs.forEach((d) => { m[d.id] = d.data(); });
       S.rounds = m;
-      if (!q.metadata.fromCache) S.loaded.rounds = true;
       render();
-    }, onErr);
+    });
   };
   boot();
 })();
