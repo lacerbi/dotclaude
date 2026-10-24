@@ -14,9 +14,20 @@ I'm on Windows PowerShell. `@'...'@` here-strings work only in the PowerShell to
 
 Sub-agents are **Opus** by default (`model: opus`) — exploration, review, verification, and implementation alike. Use Sonnet only for narrow, fully specified mechanical work where no judgment is needed (run a linter or test suite and report the result; apply a spelled-out edit). Never Haiku: it is a generation behind and can't be trusted with interpretation. Fable sub-agents only when the user asks for them — too expensive to spawn routinely.
 
-**Cross-ecosystem roles: Astra ≈ Fable, Sol ≈ Opus.** The companion Codex setup (`~/.codex`) names its models that way, and plans written there label executors accordingly; read an Astra phase as written for Fable and a Sol phase as written for Opus.
+**Cross-ecosystem roles: Astra ≈ Fable, Sol ≈ Opus.** The companion Codex setup (`~/.codex`) names its models that way, and plans written there label executors accordingly; read an Astra phase as written for Fable and a Sol phase as written for Opus. This mapping is for reading executor labels in plans written in Codex; a request to run an Astra or Sol agent is different (see Codex agents).
 
 **Parallel fan-out — only one heavy-compute agent.** When fanning out parallel agents (e.g. for review/doublecheck), at most **ONE** may run heavy compute (GPU/CPU-intensive processes: training, torch, test suites, builds). Instruct the rest to go deep but stay **read-only / static-analysis** (reading files, reasoning, grepping) — explicitly tell them not to run such processes. Running heavy compute in several agents at once once froze the machine. Cleanest variant: keep the single heavy slot in the main thread yourself and make the whole fan-out read-only.
+
+## Codex agents (Astra, Sol)
+
+When the user asks for an "Astra agent" or an "Astra review", it means GPT-6 Astra (`gpt-6-astra`), run through the Codex CLI, not a Claude sub-agent; "Sol" means GPT-6.1 Sol (`gpt-6.1-sol`). Use the effort the user names (`high`, `xhigh` or `max`), and `xhigh` when they name none. Run one only when the user asks for it, or when a plan or skill they approved calls for one.
+
+- **Brief.** Write a self-contained brief to a file: the goal, the files to read, what counts as a finding, the report's format, and the rules. Read-only is the default, and the one-heavy-compute rule applies to Codex agents too. Codex reads the repository's `AGENTS.md`, but not the conversation that asked for it.
+- **Run.** Run it in the background, in a read-only sandbox (Bash syntax):
+  `codex exec -m gpt-6-astra -c model_reasoning_effort='"xhigh"' -s read-only -C <repo> -o <report.md> - < <brief.md> > <log> 2>&1`
+  Put `--search` before `exec` (`codex --search exec …`) when the task needs web sources. Use a writable sandbox only when the user asks for edits.
+- **Check.** The log's header names the model, the effort and the sandbox; read it once after starting. The final message goes to the `-o` file, and the log holds the whole run. A `max` run can take an hour.
+- **Keep.** A report the work relies on goes where the project keeps its analysis outputs, not in a temporary directory.
 
 ## No memory system
 
