@@ -16,6 +16,8 @@ Sub-agents are **Opus** by default (`model: opus`) — exploration, review, veri
 
 **Cross-ecosystem roles: Astra ≈ Fable, Sol ≈ Opus.** The companion Codex setup (`~/.codex`) names its models that way, and plans written there label executors accordingly; read an Astra phase as written for Fable and a Sol phase as written for Opus. This mapping is for reading executor labels in plans written in Codex; a request to run an Astra or Sol agent is different (see Codex agents).
 
+**Split large work that parallelises.** A large task usually goes to several agents, not one: when it splits into independent parts (per module, per file group, per question), fan out, with any shared code the parts depend on done first by one agent. A single agent for a large task is the exception, for work that really has to stay together. The same holds when writing plans: mark the phases or steps that can run in parallel.
+
 **Parallel fan-out — only one heavy-compute agent.** When fanning out parallel agents (e.g. for review/doublecheck), at most **ONE** may run heavy compute (GPU/CPU-intensive processes: training, torch, test suites, builds). Instruct the rest to go deep but stay **read-only / static-analysis** (reading files, reasoning, grepping) — explicitly tell them not to run such processes. Running heavy compute in several agents at once once froze the machine. Cleanest variant: keep the single heavy slot in the main thread yourself and make the whole fan-out read-only.
 
 ## Codex agents (Astra, Sol)
