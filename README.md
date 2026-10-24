@@ -18,6 +18,7 @@ See also the companion [Codex skills repository](https://github.com/lacerbi/dotc
 | [`/triage <feedback>`](skills/triage/SKILL.md) | Investigate feedback, validate issues, fix confirmed problems when requested | Explicit | - |
 | [`/handoff`](skills/handoff/SKILL.md) | Make work resumable from a clean checkout: commit/push, record in-flight async work, flag what isn't durable | Explicit | - |
 | [`/hpc`](skills/hpc/SKILL.md) | Launch and manage jobs on the HPC cluster | Explicit | Requires the `hpc` launcher tool |
+| [`/decision-board`](skills/decision-board/SKILL.md) | Put the points to decide on a private claude.ai page, answered and settled round by round | Auto | Needs the Artifact tools; offered in one line first |
 
 **Invoke**: *Auto* skills may be triggered by Claude when relevant; *Explicit* skills run only when you call `/<name>` (or ask for them) — they set `disable-model-invocation: true` or are explicit-only by convention.
 

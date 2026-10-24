@@ -1,0 +1,887 @@
+<title>{{BOARD_TITLE}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- Decision board page. Copy it, put the board's name in the <title>, and publish with capabilities {db: {}, comments: {}}. Everything else comes from the database: board/meta, items, responses, rounds. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: one reading column of decision cards, calls above proposals, with an outline of the open points on its left on wide screens; a sticky submit bar at the foot of the column. */
+:root {
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --sunken: #eceff4;
+  --ink: #1a2130;
+  --muted: #586274;
+  --line: #d6dbe4;
+  --accent: #1f5687;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2ebf5;
+  --call: #a3245e;
+  --call-soft: #f9e4ee;
+  --need: #9a5900;
+  --need-soft: #fbeed6;
+  --ok: #2a6e47;
+  --ok-soft: #e0f0e6;
+  --changed: #5a40a3;
+  --changed-soft: #ece6f9;
+  --danger: #b3261e;
+  --del-soft: #fbe3e1;
+  --f-title: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #191f28; --sunken: #151a22; --ink: #e5e9ef; --muted: #98a2b1; --line: #2b333f;
+    --accent: #7fb1e3; --accent-ink: #0f1722; --accent-soft: #1b2939;
+    --call: #f28fbb; --call-soft: #36192a;
+    --need: #e3a54e; --need-soft: #2c2312; --ok: #6cc596; --ok-soft: #142a1e;
+    --changed: #b39ef2; --changed-soft: #241e37; --danger: #ff8a80; --del-soft: #3b1d1b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #191f28; --sunken: #151a22; --ink: #e5e9ef; --muted: #98a2b1; --line: #2b333f;
+  --accent: #7fb1e3; --accent-ink: #0f1722; --accent-soft: #1b2939;
+  --call: #f28fbb; --call-soft: #36192a;
+  --need: #e3a54e; --need-soft: #2c2312; --ok: #6cc596; --ok-soft: #142a1e;
+  --changed: #b39ef2; --changed-soft: #241e37; --danger: #ff8a80; --del-soft: #3b1d1b;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.shell {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 780px; margin: 0 auto; padding-block: 28px 0; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.outline { display: none; }
+.jump-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; padding: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.linkish { font: inherit; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.next-cue { display: inline-block; font-size: 12.5px; color: var(--accent); }
+.tell { display: block; margin-top: 4px; }
+.tell > summary { font-size: 13px; }
+.tell-line { display: block; margin-top: 6px; padding: 6px 8px; user-select: all; white-space: normal; overflow-wrap: anywhere; }
+@media (min-width: 1180px) {
+  .shell { display: grid; grid-template-columns: 236px minmax(0, 780px); gap: 36px; justify-content: center; }
+  .wrap { margin: 0; }
+  .jump { display: none; }
+  .outline {
+    display: flex; flex-direction: column; gap: 14px;
+    position: sticky; top: env(safe-area-inset-top, 0px); align-self: start;
+    max-height: 100vh; overflow-y: auto; box-sizing: border-box; padding-block: 34px 24px;
+  }
+}
+.ol-group { display: flex; flex-direction: column; gap: 2px; }
+.ol-head { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 0 6px 2px; }
+.ol-head.call { color: var(--call); }
+.ol-item { font: inherit; font-size: 13.5px; line-height: 1.35; text-align: left; background: none; border: 0; border-radius: 6px; padding: 5px 6px; color: var(--ink); cursor: pointer; display: flex; gap: 8px; align-items: flex-start; overflow-wrap: anywhere; }
+.ol-item:hover { background: var(--sunken); }
+.ol-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.ol-item .dot { flex: none; width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; border: 1.5px solid var(--need); box-sizing: border-box; }
+.ol-item.done { color: var(--muted); }
+.ol-item.done .dot { background: var(--accent); border-color: var(--accent); }
+.ol-link { color: var(--accent); }
+.ol-foot { margin: 0; font-size: 13px; color: var(--muted); padding: 0 6px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+header.page { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-title); font-weight: 600; font-size: 30px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 65ch; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+.chip { font-family: var(--f-mono); font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--sunken); color: var(--muted); border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.chip.call { background: var(--call-soft); color: var(--call); border-color: transparent; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.chip.round { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.how { margin: 0; font-size: 13px; color: var(--muted); }
+.note { background: var(--changed-soft); color: var(--ink); border-radius: 10px; padding: 12px 14px; }
+.note .label { color: var(--changed); }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tab { font: inherit; font-size: 14px; background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 10px; color: var(--muted); cursor: pointer; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 500; }
+.tab:focus-visible, button:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#list { display: flex; flex-direction: column; gap: 16px; }
+.tier { display: flex; flex-direction: column; gap: 16px; }
+.tier + .tier { padding-top: 20px; }
+.tier-head { display: flex; flex-direction: column; gap: 2px; }
+.tier-head h2 { font-family: var(--f-title); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; display: flex; gap: 10px; align-items: baseline; }
+.tier-call .tier-head h2 { color: var(--call); }
+.tier-count { font-family: var(--f-mono); font-size: 13px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tier-head p { margin: 0; color: var(--muted); font-size: 14px; }
+.group-head { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 8px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card.call { border-color: var(--call); box-shadow: 0 0 0 3px var(--call-soft); }
+.card.settled { background: var(--sunken); gap: 8px; }
+.card-head { display: flex; flex-direction: column; gap: 4px; }
+.card-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.meta-left { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; min-width: 0; }
+.kind { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.kind.call { color: var(--call); font-weight: 500; }
+.item-id { font-family: var(--f-mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.pill { font-size: 12px; font-weight: 500; padding: 2px 9px; border-radius: 999px; }
+.pill.need { background: var(--need-soft); color: var(--need); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.answered { background: var(--accent-soft); color: var(--accent); }
+.card h3 { font-family: var(--f-title); font-weight: 600; font-size: 20px; line-height: 1.25; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+.label { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.prose { min-width: 0; overflow-wrap: anywhere; }
+.prose p { margin: 0 0 8px; }
+.prose p:last-child { margin-bottom: 0; }
+.prose ul { margin: 0 0 8px; padding-left: 20px; }
+.prose ul:last-child { margin-bottom: 0; }
+.prose li { margin: 2px 0; }
+.prose li > ul { margin: 2px 0 0; }
+code { font-family: var(--f-mono); font-size: 0.88em; background: var(--sunken); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+.card.settled code { background: var(--surface); }
+pre.code { margin: 0 0 8px; padding: 10px 12px; max-width: 100%; overflow-x: auto; background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; font-family: var(--f-mono); font-size: 13px; line-height: 1.5; white-space: pre; overflow-wrap: normal; }
+pre.code:last-child { margin-bottom: 0; }
+pre.code code { display: inline-block; min-width: 100%; background: none; border: 0; padding: 0; font-size: inherit; }
+.card.settled pre.code { background: var(--surface); }
+.ln { display: block; }
+.ln.add { background: var(--ok-soft); }
+.ln.del { background: var(--del-soft); }
+.ln.hunk { color: var(--muted); }
+.card.general { gap: 10px; }
+.general-hint { margin: 0; color: var(--muted); font-size: 14px; }
+.changed { background: var(--changed-soft); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.changed .label { color: var(--changed); }
+details > summary { cursor: pointer; color: var(--accent); font-size: 14px; list-style: none; display: inline-flex; gap: 6px; align-items: center; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸"; font-size: 11px; transition: transform .15s; }
+details[open] > summary::before { transform: rotate(90deg); }
+details > .prose, details > ol, .thread > .earlier { margin-top: 8px; }
+.rec { background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.rec .label { color: var(--accent); }
+.decision { display: flex; flex-direction: column; gap: 4px; }
+.thread ol { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.msg { border-left: 2px solid var(--line); padding: 2px 0 2px 12px; display: flex; flex-direction: column; gap: 2px; }
+.msg.claude { border-left-color: var(--accent); }
+.msg .who { font-size: 12px; color: var(--muted); font-weight: 500; }
+.respond { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice { font: inherit; font-size: 14px; text-align: left; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
+.choice:hover { border-color: var(--accent); }
+.choice[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.choice[aria-pressed="true"] .opt-note, .choice[aria-pressed="true"] .rec-tag { color: var(--accent-ink); opacity: .85; }
+.choice[disabled] { cursor: default; opacity: .7; }
+.choice.opt { flex: 1 1 220px; }
+.opt-top { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.opt-label { font-weight: 500; overflow-wrap: anywhere; }
+.rec-tag { font-family: var(--f-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
+.opt-note { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.choice.discuss { align-self: stretch; justify-content: center; }
+textarea { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; resize: vertical; min-height: 44px; width: 100%; box-sizing: border-box; }
+textarea[disabled] { background: var(--sunken); }
+.hint { font-size: 12.5px; color: var(--muted); }
+.hint.warn { color: var(--need); }
+.bar {
+  position: sticky; bottom: 0; z-index: 5;
+  background: var(--surface); border: 1px solid var(--line); border-bottom: 0; border-radius: 12px 12px 0 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+  box-shadow: 0 -6px 18px rgba(20, 30, 50, .08);
+}
+.bar-text { font-size: 14px; min-width: 0; flex: 1 1 260px; }
+.bar-text .err { color: var(--danger); display: block; font-size: 13px; }
+.bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { font: inherit; font-size: 14px; font-weight: 500; border-radius: 8px; padding: 8px 16px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn[disabled] { opacity: .5; cursor: default; }
+.empty { color: var(--muted); padding: 24px 0; }
+.foot-space { height: 4px; }
+.narrow { display: none; }
+@media (max-width: 480px) {
+  h1 { font-size: 25px; }
+  .card { padding: 16px; }
+  .bar { padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+  .bar-text { font-size: 13px; flex-basis: 120px; }
+  .btn { padding: 7px 12px; }
+  .wide { display: none; }
+  .narrow { display: inline; }
+  .jump-list .ol-item { padding: 9px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { details > summary::before { transition: none; } }
+</style>
+
+<div class="shell">
+<nav class="outline" id="outline" aria-label="Points on this board"></nav>
+<div class="wrap">
+  <header class="page">
+    <div class="eyebrow" id="eyebrow">Decisions</div>
+    <h1 id="title"></h1>
+    <div class="intro prose" id="intro"></div>
+    <div class="summary" id="summary"></div>
+    <p class="how">Answers save as you go, and Submit sends the round to Claude. A comment is optional with Accept or an option, and a comment on its own counts as Discuss.</p>
+  </header>
+  <div id="round-note"></div>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Filter points"></nav>
+  <details class="jump" id="jump" hidden><summary>Jump to…</summary><nav class="jump-list" id="jump-list" aria-label="Points on this board"></nav></details>
+  <main id="list" aria-live="polite">
+    <p class="empty">Loading the points under discussion…</p>
+  </main>
+  <section class="card general" id="general" hidden>
+    <header class="card-head"><h3>General comments</h3></header>
+    <p class="general-hint">Comments, questions or ideas that don't belong to any one point. They go in with the round when you submit.</p>
+    <div id="general-thread"></div>
+    <label class="label" for="t-general">Comment, question or idea</label>
+    <textarea id="t-general" data-text="general" rows="3" placeholder="Optional"></textarea>
+  </section>
+  <div class="foot-space"></div>
+  <div class="bar" id="bar">
+    <div class="bar-text" id="bar-text">Connecting…</div>
+    <div class="bar-actions" id="bar-actions"></div>
+  </div>
+</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- text helpers ----------
+  const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ESC[c]);
+  // Code spans first, so nothing inside them is read as Markdown.
+  const inline = (s) => s.split(/(`[^`]+`)/).map((part, i) => i % 2
+    ? "<code>" + part.slice(1, -1) + "</code>"
+    : part.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")).join("");
+  const FENCE = /^```([^\n]*)\n([\s\S]*?)\n```[ \t]*$/gm;
+  // The lines of a diff block, colored by their first character.
+  const diffLines = (body) => body.split("\n").map((l) => {
+    const cls = l[0] === "+" ? " add" : l[0] === "-" ? " del" : l.startsWith("@@") ? " hunk" : "";
+    return '<span class="ln' + cls + '">' + (esc(l) || " ") + "</span>";
+  }).join("");
+  // A small Markdown subset: paragraphs, "- " bullets (one nested level), fenced code blocks (a diff block colors its lines), `code`, **bold**.
+  function md(src) {
+    if (!src) return "";
+    const codes = [];
+    const text = String(src).replace(/\r/g, "").replace(FENCE, (_, lang, body) => {
+      codes.push({ lang: lang.trim().toLowerCase(), body });
+      return "\n\n\u0000" + (codes.length - 1) + "\u0000\n\n";
+    });
+    return esc(text).split(/\n\s*\n/).filter((b) => b.trim() !== "").map((b) => {
+      const code = /^\s*\u0000(\d+)\u0000\s*$/.exec(b);
+      if (code) {
+        const c = codes[Number(code[1])];
+        return '<pre class="code"><code>' + (c.lang === "diff" ? diffLines(c.body) : esc(c.body)) + "</code></pre>";
+      }
+      const lines = b.split("\n").filter((l) => l.trim() !== "");
+      if (lines.every((l) => /^\s*- /.test(l))) {
+        let html = "<ul>";
+        let inSub = false;
+        for (const l of lines) {
+          const sub = /^\s{2,}- /.test(l);
+          const item = inline(l.replace(/^\s*- /, ""));
+          if (sub && !inSub) { html = html.replace(/<\/li>$/, ""); html += "<ul>"; inSub = true; }
+          else if (!sub && inSub) { html += "</ul></li>"; inSub = false; }
+          html += "<li>" + item + "</li>";
+        }
+        if (inSub) html += "</ul></li>";
+        return html + "</ul>";
+      }
+      return "<p>" + lines.map(inline).join("<br>") + "</p>";
+    }).join("");
+  }
+
+  // ---------- state ----------
+  // Maps keyed by point ids have no prototype, so an id such as "constructor" is an ordinary key.
+  const dict = () => Object.create(null);
+  const S = {
+    db: null, dbMissing: false, comments: null, canSend: "",
+    meta: null, general: null, items: null, responses: dict(), rounds: dict(),
+    loaded: { meta: false, responses: false, rounds: false },
+    // An answer edited here: drafts holds it, rev counts its edits, dirty marks it until a write of it succeeds.
+    drafts: dict(), rev: dict(), dirty: dict(), draftRound: null,
+    tab: null, submitting: false, notifying: false,
+    error: "",
+  };
+  const TAB = "tab-" + Math.random().toString(36).slice(2);
+  const round = () => (S.meta && Number(S.meta.round)) || 1;
+  const locked = () => !!S.rounds["r" + round()];
+  const ready = () => !!S.db && S.items !== null && S.loaded.meta && S.loaded.responses && S.loaded.rounds;
+  // Answers change only once the open round and its saved answers are known, and not during a Submit.
+  const editable = () => ready() && !locked() && !S.submitting;
+  const isCall = (it) => it.kind === "call";
+  const openItems = () => (S.items || []).filter((it) => it.status !== "settled");
+  const settledItems = () => (S.items || []).filter((it) => it.status === "settled");
+  function boardTitle() {
+    const m = S.meta || {};
+    if (m.title) return String(m.title);
+    const t = document.title || "";
+    return t && t.indexOf("{{") === -1 ? t : "Decisions";
+  }
+
+  function answerFor(id) {
+    if (S.drafts[id]) return S.drafts[id];
+    const r = S.responses[id];
+    if (r && Number(r.round) === round()) return { verdict: r.verdict || "", option: r.option || "", text: r.text || "" };
+    return { verdict: "", option: "", text: "" };
+  }
+  const isAnswered = (a) => a.verdict === "accept" || a.verdict === "option" || a.text.trim() !== "";
+  // The general comments box keeps its answer as responses/general.
+  const hasGeneral = () => answerFor("general").text.trim() !== "";
+
+  // What accepting a proposal means: Accept, or its recommended option when it has options.
+  function acceptAnswer(it) {
+    if (Array.isArray(it.options) && it.options.length) {
+      const rec = it.options.find((o) => o.recommended);
+      return rec ? { verdict: "option", option: rec.key, text: "" } : null;
+    }
+    return { verdict: "accept", option: "", text: "" };
+  }
+  const remainingProposals = () => openItems().filter((it) => !isCall(it) && !isAnswered(answerFor(it.id)) && acceptAnswer(it));
+
+  function errText(err) {
+    const code = err && err.code;
+    if (code === "invalid_argument" || code === "not_granted") return "Your answers can't be saved from this view. Open the page on claude.ai, signed in as its owner.";
+    if (code === "quota_exceeded") return "The page's storage is full, so this answer wasn't saved.";
+    if (code === "revoked") return "Access to this page changed while it was open. Reload to continue.";
+    return "An answer didn't save. Check your connection; it saves again on your next change.";
+  }
+
+  // ---------- saving ----------
+  const timers = dict();
+  const chains = dict();
+  function edit(id, a) {
+    S.drafts[id] = a;
+    S.rev[id] = (S.rev[id] || 0) + 1;
+    S.dirty[id] = true;
+  }
+  function queueSave(id, delay) {
+    if (!editable()) return;
+    clearTimeout(timers[id]);
+    const r = round();
+    timers[id] = setTimeout(() => {
+      delete timers[id];
+      if (editable() && round() === r) save(id, "draft", r);
+    }, delay);
+  }
+  // Resolves true when the answer was written, false when the write failed. Once written, and not edited
+  // since, the answer is no longer a draft: the page shows the saved answer, which another tab can change.
+  function save(id, state, r) {
+    const a = S.drafts[id];
+    if (!a || !S.db) return Promise.resolve(true);
+    const rev = S.rev[id];
+    const body = {
+      round: r || round(),
+      // The general comments box has no verdict: its answer is its text.
+      verdict: id === "general" ? (a.text.trim() ? "discuss" : "") : a.verdict || (a.text.trim() ? "discuss" : ""),
+      option: a.option || "",
+      text: a.text,
+      state: state,
+      updatedAt: new Date().toISOString(),
+    };
+    const p = (chains[id] || Promise.resolve(true))
+      .then(() => S.db.doc("responses/" + id).set(body))
+      .then(() => {
+        if (S.rev[id] === rev) { delete S.dirty[id]; delete S.drafts[id]; }
+        S.error = ""; renderBar(); return true;
+      }, (err) => { S.error = errText(err); renderBar(); return false; });
+    chains[id] = p;
+    return p;
+  }
+  function acceptRemaining() {
+    if (!editable()) return;
+    for (const it of remainingProposals()) {
+      edit(it.id, acceptAnswer(it));
+      queueSave(it.id, 0);
+    }
+    renderHeader(); renderList(); renderBar();
+  }
+  // Errors on which the comments API has posted nothing; on any other error the comment may have gone through.
+  const UNSENT = new Set(["claude_unavailable", "consent_required", "forbidden", "invalid", "not_granted",
+    "capability_disabled", "capability_removed", "transform_error"]);
+  // Post a comment that reaches the Claude session watching this page: "sent", "unsent" or "unknown".
+  async function notifyClaude(r, n, rest, general) {
+    const c = S.comments;
+    if (!c || typeof c.sendToClaude !== "function") return "unsent";
+    try {
+      if ((await c.canSendToClaude()) !== "available") return "unsent";
+      const anchor = await c.anchorFor($("bar"));
+      await c.sendToClaude({
+        anchor,
+        text: `Round ${r} submitted on the board "${boardTitle()}": ${n} answered${rest ? `, ${rest} left open` : ""}${general ? ", with a general comment" : ""}. Please read the answers and update the board.`,
+      });
+      return "sent";
+    } catch (e) {
+      return e && UNSENT.has(e.code) ? "unsent" : "unknown";
+    }
+  }
+  async function recordNotice(r, out) {
+    if (out === "sent") await S.db.doc("rounds/r" + r).update({ notified: true });
+    if (out === "unknown") await S.db.doc("rounds/r" + r).update({ notifyUnknown: true });
+  }
+  const SAVE_FAILED = "Some answers didn't save, so the round wasn't submitted. Check your connection and submit again.";
+  async function submit() {
+    if (!editable()) return;
+    const r = round();
+    S.submitting = true;
+    render();
+    try {
+      // One tab or device submits at a time: a short lease on locks/submit.
+      const lockRef = S.db.doc("locks/submit");
+      if (typeof lockRef.acquire === "function") {
+        let lease = { acquired: true };
+        try { lease = await lockRef.acquire({ holder: TAB, ttlMs: 60000 }); } catch (e) { /* no lease here: go on */ }
+        if (!lease.acquired) throw new Error("This board is being submitted from another tab or device. Look again in a moment.");
+      }
+      // The round as the server has it, not as this view last saw it.
+      const [metaSnap, roundSnap] = await Promise.all([S.db.doc("board/meta").get(), S.db.doc("rounds/r" + r).get()]);
+      const serverRound = Number(((metaSnap.exists && metaSnap.data()) || {}).round) || 1;
+      if (serverRound !== r || roundSnap.exists) {
+        throw new Error("This round changed while it was being submitted, so it wasn't submitted again.");
+      }
+      // Every edit not yet saved, an emptied answer or an earlier failed write included, is written first.
+      for (const id of Object.keys(timers)) { clearTimeout(timers[id]); delete timers[id]; }
+      const flushed = await Promise.all(Object.keys(S.dirty).map((id) => save(id, "draft", r)));
+      await Promise.all(Object.values(chains));
+      if (flushed.includes(false)) throw new Error(SAVE_FAILED);
+      const answered = openItems().filter((it) => isAnswered(answerFor(it.id)));
+      const general = hasGeneral();
+      const ids = answered.map((it) => it.id).concat(general ? ["general"] : []);
+      for (const id of ids) {
+        if (!S.drafts[id]) S.drafts[id] = { ...answerFor(id) };
+      }
+      const saved = await Promise.all(ids.map((id) => save(id, "submitted", r)));
+      if (saved.includes(false)) throw new Error(SAVE_FAILED);
+      const rest = openItems().length - answered.length;
+      await S.db.doc("rounds/r" + r).set({
+        round: r,
+        submittedAt: new Date().toISOString(),
+        answered: answered.length,
+        open: rest,
+        general: general,
+      });
+      S.notifying = true;
+      renderBar();
+      await recordNotice(r, await notifyClaude(r, answered.length, rest, general));
+    } catch (err) {
+      S.error = err && err.code ? errText(err) : (err && err.message) || errText(err);
+    }
+    S.notifying = false;
+    S.submitting = false;
+    render();
+  }
+
+  // A submitted round that no session received: tell Claude from here, on the viewer's tap.
+  async function notifyAgain() {
+    const r = round();
+    const doc = S.rounds["r" + r];
+    if (!doc || doc.notified || S.notifying || S.submitting) return;
+    S.notifying = true;
+    renderBar();
+    const out = await notifyClaude(r, doc.answered || 0, doc.open || 0, !!doc.general);
+    try {
+      await recordNotice(r, out);
+      if (out === "unsent") S.error = "Claude couldn't be notified from here. Tell Claude in the terminal.";
+    } catch (e) {
+      S.error = errText(e);
+    }
+    S.notifying = false;
+    renderBar();
+  }
+  // Whether a Claude session would receive a Submit now; watching sessions come and go.
+  function checkSend() {
+    const c = S.comments;
+    if (!c || typeof c.canSendToClaude !== "function") { S.canSend = "off"; renderBar(); return; }
+    c.canSendToClaude().then(
+      (v) => { if (v !== S.canSend) { S.canSend = v; renderBar(); } },
+      () => { S.canSend = "off"; renderBar(); });
+  }
+
+  // ---------- rendering ----------
+  const $ = (id) => document.getElementById(id);
+  const TIERS = {
+    call: ["Your call", "These depend on your preference or on something Claude can't know. Claude says which way it leans; the choice is yours."],
+    proposal: ["Proposals", "Accept Claude's recommendation on each, or comment."],
+  };
+
+  function renderHeader() {
+    const m = S.meta || {};
+    $("eyebrow").textContent = m.eyebrow || "Decisions";
+    $("title").textContent = boardTitle();
+    $("intro").innerHTML = md(m.intro || "");
+    const open = openItems();
+    const calls = open.filter(isCall).length;
+    const answered = open.filter((it) => isAnswered(answerFor(it.id))).length;
+    const parts = [`<span class="chip round">Round ${round()}</span>`];
+    if (S.items) {
+      if (calls) parts.push(`<span class="chip call">Your call · ${calls}</span>`);
+      parts.push(`<span class="chip">Proposals · ${open.length - calls}</span>`);
+      parts.push(`<span class="chip ok">Settled · ${settledItems().length}</span>`);
+      if (!locked() && open.length) parts.push(`<span class="chip">${answered} of ${open.length} answered</span>`);
+    }
+    $("summary").innerHTML = parts.join("");
+    const note = m.roundNote && Number(m.roundNoteRound || round()) === round() ? m.roundNote : "";
+    $("round-note").innerHTML = note
+      ? `<div class="note"><div class="label">What changed in round ${round()}</div><div class="prose">${md(note)}</div></div>`
+      : "";
+    renderOutline();
+  }
+
+  // The first open point without an answer, calls before proposals.
+  function nextUnanswered() {
+    const open = openItems();
+    return open.filter(isCall).concat(open.filter((it) => !isCall(it))).find((it) => !isAnswered(answerFor(it.id))) || null;
+  }
+
+  // The outline beside the column on wide screens, and the Jump to list above the cards on narrow ones:
+  // the open points by kind, each marked answered or not.
+  function renderOutline() {
+    if (!S.items || !S.items.length) { $("outline").innerHTML = ""; $("jump").hidden = true; return; }
+    const groups = outlineGroups();
+    $("outline").innerHTML = `<div class="label">On this board</div>` + groups;
+    $("jump").hidden = false;
+    $("jump-list").innerHTML =
+      (nextUnanswered() ? `<button class="ol-item ol-link" data-goto="__next">Next unanswered</button>` : "") + groups;
+  }
+
+  function outlineGroups() {
+    const open = openItems();
+    let html = "";
+    for (const k of ["call", "proposal"]) {
+      const items = open.filter((it) => (k === "call") === isCall(it));
+      if (!items.length) continue;
+      html += `<div class="ol-group"><div class="ol-head${k === "call" ? " call" : ""}">${TIERS[k][0]}</div>` +
+        items.map((it) => {
+          const done = isAnswered(answerFor(it.id));
+          return `<button class="ol-item${done ? " done" : ""}" data-goto="${esc(it.id)}"><span class="dot" aria-hidden="true"></span>` +
+            `<span>${esc(it.title)}<span class="sr">${done ? ", answered" : ", needs you"}</span></span></button>`;
+        }).join("") + `</div>`;
+    }
+    if (!open.length) html += `<p class="ol-foot">Every point is settled.</p>`;
+    const settled = settledItems().length;
+    html += `<div class="ol-group">` +
+      (settled ? `<button class="ol-item ol-link" data-goto="__settled">Settled (${settled})</button>` : "") +
+      `<button class="ol-item ol-link" data-goto="__general">General comments</button></div>`;
+    return html;
+  }
+
+  function renderGeneral() {
+    const box = $("general");
+    box.hidden = S.dbMissing || S.items === null;
+    const g = S.general || {};
+    $("general-thread").innerHTML = threadHtml({ thread: g.thread, changedRound: g.changedRound });
+    const ta = $("t-general");
+    ta.disabled = !editable();
+    if (document.activeElement !== ta) ta.value = answerFor("general").text;
+  }
+
+  function renderTabs() {
+    if (!S.items || !S.items.length) { $("tabs").innerHTML = ""; return; }
+    const tabs = [
+      ["open", `Needs you (${openItems().length})`],
+      ["settled", `Settled (${settledItems().length})`],
+      ["all", `All (${S.items.length})`],
+    ];
+    if (!S.tab) S.tab = openItems().length ? "open" : "all";
+    $("tabs").innerHTML = tabs.map(([k, label]) =>
+      `<button class="tab" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${esc(label)}</button>`).join("");
+  }
+
+  const msgHtml = (m) => `<li class="msg ${m.who === "claude" ? "claude" : "you"}"><span class="who">${m.who === "claude" ? "Claude" : "You"} · round ${esc(m.round)}${m.verdict ? " · " + esc(m.verdict) : ""}</span><div class="prose">${md(m.text)}</div></li>`;
+  function threadHtml(it) {
+    const t = Array.isArray(it.thread) ? it.thread : [];
+    if (!t.length) return "";
+    const open = Number(it.changedRound) === round() ? " open" : "";
+    // Past four messages the earlier ones fold, and the last two stay in view, in order.
+    const fold = t.length > 4 ? t.length - 2 : 0;
+    const earlier = fold
+      ? `<details class="earlier"><summary>Earlier discussion (${fold})</summary><ol>${t.slice(0, fold).map(msgHtml).join("")}</ol></details>`
+      : "";
+    return `<details class="thread"${open}><summary>Discussion (${t.length})</summary>${earlier}<ol>${t.slice(fold).map(msgHtml).join("")}</ol></details>`;
+  }
+
+  function metaLeft(it, withKind) {
+    const call = isCall(it);
+    const kind = withKind ? `<span class="kind${call ? " call" : ""}">${call ? "Your call" : "Proposal"}</span>` : "";
+    return `<span class="meta-left">${kind}<span class="item-id">${esc(it.group || "")}${it.group ? " · " : ""}${esc(it.id)}</span></span>`;
+  }
+
+  function openCardHtml(it) {
+    const a = answerFor(it.id);
+    const lock = !editable();
+    const dis = lock ? " disabled" : "";
+    const answered = isAnswered(a);
+    const pill = answered
+      ? `<span class="pill answered">${a.verdict === "accept" ? "Accepted" : a.verdict === "option" ? "Option chosen" : "Comment written"}</span>`
+      : `<span class="pill need">Needs you</span>`;
+    const changed = Number(it.changedRound) === round() && it.changed
+      ? `<div class="changed"><div class="label">Updated in round ${round()}</div><div class="prose">${md(it.changed)}</div></div>` : "";
+    const detail = it.detail ? `<details class="detail"><summary>More detail</summary><div class="prose">${md(it.detail)}</div></details>` : "";
+    const rec = it.recommendation ? `<section class="rec"><div class="label">Recommendation</div><div class="prose">${md(it.recommendation)}</div></section>` : "";
+    let choices;
+    if (Array.isArray(it.options) && it.options.length) {
+      choices = it.options.map((o) => {
+        const on = a.verdict === "option" && a.option === o.key;
+        return `<button class="choice opt" data-act="option" data-key="${esc(o.key)}" aria-pressed="${on}"${dis}>` +
+          `<span class="opt-top"><span class="opt-label">${esc(o.label)}</span>${o.recommended ? '<span class="rec-tag">Recommended</span>' : ""}</span>` +
+          (o.note ? `<span class="opt-note">${esc(o.note)}</span>` : "") + `</button>`;
+      }).join("");
+    } else {
+      choices = `<button class="choice" data-act="accept" aria-pressed="${a.verdict === "accept"}"${dis}><span class="opt-label">Accept</span></button>`;
+    }
+    choices += `<button class="choice discuss" data-act="discuss" aria-pressed="${a.verdict === "discuss"}"${dis}><span class="opt-label">Discuss</span></button>`;
+    const needText = a.verdict === "discuss" && !a.text.trim();
+    const hint = `<div class="hint warn" data-hint="${esc(it.id)}"${needText ? "" : " hidden"}>Write your question or comment, so Claude knows what to answer.</div>`;
+    return `<article class="card${isCall(it) ? " call" : ""}" data-item="${esc(it.id)}">
+      <header class="card-head">
+        <div class="card-meta">${metaLeft(it, true)}${pill}</div>
+        <h3>${esc(it.title)}</h3>
+      </header>
+      ${changed}
+      <div class="prose">${md(it.context)}</div>
+      ${detail}
+      ${rec}
+      ${threadHtml(it)}
+      <div class="respond">
+        <div class="choices" role="group" aria-label="Your answer">${choices}</div>
+        <label class="label" for="t-${esc(it.id)}">Comment or question</label>
+        <textarea id="t-${esc(it.id)}" data-text="${esc(it.id)}" rows="2"${dis} placeholder="Optional">${esc(a.text)}</textarea>
+        ${hint}
+      </div>
+    </article>`;
+  }
+
+  function settledCardHtml(it) {
+    return `<article class="card settled" data-item="${esc(it.id)}">
+      <header class="card-head">
+        <div class="card-meta">${metaLeft(it, false)}<span class="pill ok">Settled${it.settledRound ? " · round " + esc(it.settledRound) : ""}</span></div>
+        <h3>${esc(it.title)}</h3>
+      </header>
+      <div class="decision"><div class="label">Decision</div><div class="prose">${md(it.decision || "")}</div></div>
+      ${threadHtml(it)}
+    </article>`;
+  }
+
+  function cardsHtml(items) {
+    let html = "";
+    let lastGroup = null;
+    for (const it of items) {
+      const g = it.section || "";
+      if (g && g !== lastGroup) { html += `<div class="group-head">${esc(g)}</div>`; lastGroup = g; }
+      html += it.status === "settled" ? settledCardHtml(it) : openCardHtml(it);
+    }
+    return html;
+  }
+
+  function renderList() {
+    const list = $("list");
+    if (S.dbMissing) {
+      list.innerHTML = `<p class="empty">This view can't reach the page's saved data. Open it on claude.ai while signed in.</p>`;
+      return;
+    }
+    if (S.items === null) return;
+    if (!S.items.length) {
+      list.innerHTML = `<p class="empty">No points yet. Claude adds them here, and you answer each one.</p>`;
+      return;
+    }
+    // Keep the caret where it was if the viewer is typing.
+    const active = document.activeElement;
+    const keep = active && active.matches && active.matches("textarea[data-text]")
+      ? { id: active.id, s: active.selectionStart, e: active.selectionEnd } : null;
+    let html = "";
+    if (S.tab === "open") {
+      const open = openItems();
+      for (const k of ["call", "proposal"]) {
+        const items = open.filter((it) => (k === "call") === isCall(it));
+        if (!items.length) continue;
+        html += `<section class="tier tier-${k}"><header class="tier-head"><h2>${TIERS[k][0]} <span class="tier-count">${items.length}</span></h2><p>${TIERS[k][1]}</p></header>${cardsHtml(items)}</section>`;
+      }
+      if (!html) html = `<p class="empty">Nothing needs you right now.</p>`;
+    } else {
+      const items = S.tab === "settled" ? settledItems() : S.items;
+      html = cardsHtml(items) || `<p class="empty">Nothing here yet.</p>`;
+    }
+    list.innerHTML = html;
+    if (keep) {
+      const el = document.getElementById(keep.id);
+      if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (e) {} }
+    }
+  }
+
+  function renderBar() {
+    const text = $("bar-text");
+    const actions = $("bar-actions");
+    const err = S.error ? `<span class="err">${esc(S.error)}</span>` : "";
+    if (S.dbMissing) { text.innerHTML = "Answers can't be saved in this view."; actions.innerHTML = ""; return; }
+    if (!ready()) { text.innerHTML = "Connecting…" + err; actions.innerHTML = ""; return; }
+    if (locked()) {
+      const r = S.rounds["r" + round()];
+      let next = "Claude updates this page when it replies.";
+      let act = "";
+      if (!r.notified) {
+        if (S.submitting || S.notifying) {
+          next = "Notifying Claude…";
+        } else {
+          next = r.notifyUnknown ? "Notification not confirmed." : "Claude wasn't notified.";
+          if (S.canSend === "available") act = `<button class="btn" id="btn-notify">Notify Claude</button>`;
+          else next += " Tell Claude in the terminal.";
+        }
+      }
+      // A line to give a Claude session in the terminal, when no session heard this Submit.
+      const tell = !r.notified && !S.submitting && !S.notifying
+        ? `<details class="tell"${S.tellOpen ? " open" : ""}><summary>What to tell Claude</summary>` +
+          `<code class="tell-line">Resume the board "${esc(boardTitle())}"; round ${round()} is submitted.</code></details>`
+        : "";
+      text.innerHTML = `<strong>Round ${round()} submitted.</strong> ${next}${tell}` + err;
+      actions.innerHTML = act;
+      return;
+    }
+    const open = openItems();
+    const n = open.filter((it) => isAnswered(answerFor(it.id))).length;
+    const rest = open.length - n;
+    const g = hasGeneral();
+    const count = open.length ? `${n} of ${open.length} answered.` : "Every point is settled.";
+    // The count takes you to the next unanswered point.
+    const status = rest > 0
+      ? `<button class="linkish" data-goto="__next" aria-label="${count} Go to the next unanswered point">${count} <span class="next-cue" aria-hidden="true">next ›</span></button>`
+      : count;
+    if (!open.length && !g) {
+      text.innerHTML = status + err;
+      actions.innerHTML = "";
+      return;
+    }
+    const canSubmit = (n > 0 || g) && editable();
+    const left = n && rest ? " The rest carry over." : "";
+    const quiet = S.canSend === "no_session" ? " No Claude session is listening." : "";
+    text.innerHTML = `${status}${left}${quiet}` + err;
+    const k = editable() ? remainingProposals().length : 0;
+    actions.innerHTML =
+      (k ? `<button class="btn ghost" id="btn-accept-rest" aria-label="Accept remaining proposals (${k})"><span class="wide">Accept remaining proposals</span><span class="narrow">Accept rest</span> (${k})</button>` : "") +
+      `<button class="btn" id="btn-submit"${canSubmit ? "" : " disabled"}>${S.submitting ? "Submitting…" : `Submit round ${round()}`}</button>`;
+  }
+
+  function render() {
+    if (S.draftRound !== round()) { S.drafts = dict(); S.rev = dict(); S.dirty = dict(); S.draftRound = round(); }
+    renderHeader();
+    renderTabs();
+    renderList();
+    renderGeneral();
+    renderBar();
+  }
+
+  // ---------- events ----------
+  $("tabs").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-tab]");
+    if (!b) return;
+    S.tab = b.dataset.tab;
+    renderTabs(); renderList();
+  });
+
+  $("list").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-act]");
+    if (!b || b.disabled || !editable()) return;
+    const card = b.closest("[data-item]");
+    const id = card.dataset.item;
+    const a = { ...answerFor(id) };
+    const act = b.dataset.act;
+    let focusText = false;
+    if (act === "accept") { a.verdict = a.verdict === "accept" ? "" : "accept"; a.option = ""; }
+    else if (act === "option") {
+      const k = b.dataset.key;
+      if (a.verdict === "option" && a.option === k) { a.verdict = ""; a.option = ""; }
+      else { a.verdict = "option"; a.option = k; }
+    } else if (act === "discuss") {
+      a.verdict = a.verdict === "discuss" ? "" : "discuss"; a.option = "";
+      focusText = a.verdict === "discuss";
+    }
+    edit(id, a);
+    queueSave(id, 0);
+    renderHeader(); renderList(); renderBar();
+    if (focusText) { const t = document.getElementById("t-" + id); if (t) t.focus(); }
+  });
+
+  const onText = (e) => {
+    const t = e.target;
+    if (!t.matches || !t.matches("textarea[data-text]") || !editable()) return;
+    const id = t.dataset.text;
+    const a = { ...answerFor(id), text: t.value };
+    edit(id, a);
+    queueSave(id, 900);
+    renderHeader(); renderBar();
+    const hint = document.querySelector(`[data-hint="${CSS.escape(id)}"]`);
+    if (hint) hint.hidden = !(a.verdict === "discuss" && !a.text.trim());
+  };
+  $("list").addEventListener("input", onText);
+  $("general").addEventListener("input", onText);
+
+  function goTo(id) {
+    if (id === "__next") { const it = nextUnanswered(); id = it ? it.id : "__general"; }
+    let target = null;
+    if (id === "__general") target = $("general");
+    else if (id === "__settled") { S.tab = "settled"; renderTabs(); renderList(); target = $("tabs"); }
+    else {
+      if (S.tab === "settled") { S.tab = "open"; renderTabs(); renderList(); }
+      target = document.querySelector(`[data-item="${CSS.escape(id)}"]`);
+    }
+    $("jump").open = false;
+    const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (target) target.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+  }
+  const onGoto = (e) => {
+    const b = e.target.closest("[data-goto]");
+    if (b) goTo(b.dataset.goto);
+  };
+  $("outline").addEventListener("click", onGoto);
+  $("jump").addEventListener("click", onGoto);
+
+  $("bar").addEventListener("click", (e) => {
+    // The bar is drawn again often; the toggle's state is kept here so it stays as the viewer left it.
+    const sum = e.target.closest(".tell > summary");
+    if (sum) { S.tellOpen = !sum.parentElement.open; return; }
+    const g = e.target.closest("[data-goto]");
+    if (g) { goTo(g.dataset.goto); return; }
+    const b = e.target.closest("button");
+    if (!b || b.disabled) return;
+    if (b.id === "btn-submit") submit();
+    if (b.id === "btn-accept-rest") acceptRemaining();
+    if (b.id === "btn-notify") notifyAgain();
+  });
+
+  // ---------- data ----------
+  render();
+  const onErr = (err) => { S.error = errText(err); renderBar(); };
+  const boot = async () => {
+    const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+    if (!db) { S.dbMissing = true; render(); return; }
+    S.db = db;
+    window.claude.use("comments").then((c) => {
+      S.comments = c;
+      checkSend();
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkSend(); });
+      setInterval(() => { if (document.visibilityState === "visible") checkSend(); }, 60000);
+    }, () => {});
+    // Answers become editable only on definitive snapshots, not on the first pages from a cache.
+    db.doc("board/meta").onSnapshot((s) => {
+      S.meta = s.exists ? s.data() : {};
+      if (!s.metadata.fromCache) S.loaded.meta = true;
+      render();
+    }, onErr);
+    db.doc("board/general").onSnapshot((s) => { S.general = s.exists ? s.data() : null; renderGeneral(); }, onErr);
+    db.collection("items").orderBy("order").onSnapshot((q) => {
+      S.items = q.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+      render();
+    }, onErr);
+    db.collection("responses").onSnapshot((q) => {
+      const prev = S.responses;
+      const m = dict();
+      q.docs.forEach((d) => { m[d.id] = d.data(); });
+      S.responses = m;
+      // Answers that come from outside this view (the first load, another tab) are drawn into the cards.
+      const first = !S.loaded.responses;
+      if (!q.metadata.fromCache) S.loaded.responses = true;
+      const outside = Object.keys(m).some((id) => !S.drafts[id] && JSON.stringify(m[id]) !== JSON.stringify(prev[id]));
+      if (first || outside) render();
+      else if (!q.metadata.hasPendingWrites) { renderHeader(); renderBar(); }
+    }, onErr);
+    db.collection("rounds").onSnapshot((q) => {
+      const m = dict();
+      q.docs.forEach((d) => { m[d.id] = d.data(); });
+      S.rounds = m;
+      if (!q.metadata.fromCache) S.loaded.rounds = true;
+      render();
+    }, onErr);
+  };
+  boot();
+})();
+</script>
