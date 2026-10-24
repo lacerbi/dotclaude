@@ -6,6 +6,10 @@ I'm on Windows PowerShell. `@'...'@` here-strings work only in the PowerShell to
 - **Local:** run unbuffered to a **uniquely-named** log (don't clobber a prior run): `python -u script.py > runs/run_$(date +%s).log 2>&1` (background ok), then Read/`tail -F` it. Filter when *reading* (`grep` the file), not in the run pipe.
 - **HPC:** don't hand-redirect — Slurm captures each job's stdout to its own per-jobid file (so no clobber across runs). Use `hpc logs <job> --once` / `-n N` for occasional dumps, or `hpc logs` to follow. The script still needs periodic `flush=True` so the Slurm log updates before the job ends.
 
+## Commit messages
+
+Leave the session link out of commit messages and pull request descriptions: no `Claude-Session:` trailer and no `claude.ai/code/session_…` URL. Keep the `Co-Authored-By:` line.
+
 ## Python environments
 
 **Create venvs with uv** (`uv venv` + `uv pip install -r requirements.txt`, or `uv sync` with a `pyproject.toml`), not `python -m venv` + pip. uv hardlinks packages from its cache, so venvs on the same package versions share disk; pip copies everything, and a CUDA torch venv is ~4.5 GB. Keep one venv per project, since projects pin different torch builds and install different editable sources. Install CPU torch unless the project actually runs on GPU, and when nothing pins the torch version, match a version that other local venvs already use, so the cached wheel is reused.
