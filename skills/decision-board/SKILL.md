@@ -39,12 +39,15 @@ The page renders before its data arrives and fills in live, so seeding after the
 
 ## Writing a point
 
-- A title that names the decision, and a context of a few sentences. Anything longer goes in `detail`, behind a toggle.
+- A title that names the decision.
+- A context the user can follow without having read what Claude read. It says what the thing is before what to do about it: the problem in plain words, then the proposal, then its cost. A term from a review, a draft or Claude's own notes gives way to the project's own word, or is defined where it first appears. An item named by its label, such as a review's "M7" or a plan's "Phase 5b", is also described in plain words: "the referee objects that removing the card also removes the dice roll (M7)", not "per M7". The label lets the user look the item up; it does not tell them what the item says. When the point is about a concrete thing, such as an entry of a file or an item of a test, the context shows it. It also says whose idea the point is: the user's, a review's or Claude's.
+- The context is a careful summary of what the user needs to decide, or a short excerpt of the relevant text, never a dump of what Claude read: for a point about an assert, quote the assert, not the scenario's file. `detail`, behind a toggle, holds evidence and fine print the decision does not need.
 - One recommendation. On a call, the option Claude leans to is marked `recommended`, and each option's note says what that choice leads to.
 - When some points depend on how another is decided, the governing one goes first, and the dependent ones come once it's settled.
 - When the point is about exact text or code, show it as a short snippet, never a large amount. For an insertion or an edit, show the changed part with enough context around it, as a before-and-after `diff` block where it can.
 - Before asking a point, check the project's record, so a decided point isn't asked again. A point that reopens a settled decision names it, by title and id, and says what it would replace.
 - Nothing private goes on the page, which the user can share: no credentials, tokens or personal data.
+- Before a round opens, each new or rewritten card is read as the user would read it, with no source open, and rewritten wherever it leans on something it does not explain.
 
 ## The round loop
 
