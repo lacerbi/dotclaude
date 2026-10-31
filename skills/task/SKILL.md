@@ -41,9 +41,9 @@ When finished, the file shows the final status of all items, any unresolved issu
 
 ### 4. Sub-Agent Usage
 
-Sub-agents are Opus by default (see Agent Selection in the global `CLAUDE.md`). When the plan states an executor per phase, follow it: delegated phases go to Opus sub-agents, orchestrator phases you do yourself. The delegated phase's text is the core of the sub-agent's brief; add only what is situational (current tree state, conventions learned so far, return format, files another agent owns).
+Use the executor the plan names for each phase (see Agent Selection in the global `CLAUDE.md`). Carry out orchestrator phases yourself and delegate the others to the named model as the global `CLAUDE.md` describes: Claude models through the Agent tool, Astra and Sol through the Codex CLI where it is available. The phase text is the core of the sub-agent's brief; add current tree state, relevant conventions, return format and the files the sub-agent owns.
 
-A `Fable (orchestrator)` phase has no step list, so it is not ready for Opus to execute: if you are Opus, expand it in the plan to explicit steps with files, commands, and acceptance checks, tell the user you did so, and only then execute it. A phase that already has that detail needs no rewrite because the executor's model differs.
+Before execution, fill missing context or task-critical detail in the plan, with concrete steps, paths and commands where the work's uncertainty or risk warrants them. Let the executor investigate evidence that contradicts a plan assumption. Preserve the goal and decisions; seek input only for a material change beyond the user's authorization. Tell the user about every substantial or consequential change you make to the approved plan, whether it fills a gap or follows from an investigation; minor ones need no mention. A model change alone does not require rewriting a sufficient approved phase.
 
 - Update the checklist to `[~]` before dispatching
 - The sub-agent (or you, from its result) marks `[x]` or `[!]` on completion

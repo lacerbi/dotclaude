@@ -17,7 +17,7 @@ The injected diffs cover working-tree changes. If a diff was too large to inline
 
 Perform a meticulous verification and comprehensive review of all work done. Establish the actual change scope before reviewing. Treat verification as read-only unless the user explicitly asks for fixes.
 
-**Deploy one or more fresh-context Opus reviewers** (see Agent Selection in the global `CLAUDE.md`, including the one-heavy-compute-agent rule), split by aspect as the size and complexity of the change warrant. Review directly yourself only when the change is so small that a reviewer would add nothing: the point of this skill is a review by agents that did not do the work and don't share its assumptions. A fresh-context reviewer knows nothing of this conversation, so brief each one with: the original goals and requirements, its exact scope (files, commits, or the plan file), what counts as a finding (below), and the report format (below).
+**Deploy one or more fresh-context reviewers**, choosing models and efforts by Agent Selection in the global `CLAUDE.md`, including any limit it sets on agents that run heavy compute. Split by aspect as the size and complexity of the change warrant. When project instructions, or the plan or workflow that invoked this review, name the reviewers, run those. Review directly yourself only when the change is so small that a reviewer would add nothing: the point of this skill is a review by agents that did not do the work and don't share its assumptions. A fresh-context reviewer knows nothing of this conversation, so brief each one with: the original goals and requirements, its exact scope (files, commits, or the plan file), what counts as a finding (below), and the report format (below).
 
 Verify that:
 
@@ -55,7 +55,7 @@ For **plans and design documents**, also check:
 
 - Whether the proposed approach accounts for known constraints and prior decisions
 - Feasibility of each step and whether dependencies between steps are correctly sequenced
-- Whether each phase is precise enough for its stated executor (an Opus executor needs explicit steps, paths, and commands)
+- Whether each phase provides the goal, context, constraints and acceptance checks its executor needs, with explicit steps, paths and commands where uncertainty or risk warrants them
 - Whether the plan addresses verification and rollback
 - Whether documentation (READMEs, API docs, guides) needs updating or creation to reflect the changes
 

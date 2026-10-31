@@ -34,7 +34,7 @@ Explore the project to understand what exists and what the task involves. Scale 
 
 (For code-heavy tasks: Architecture, Feature, Dependency, Test explorers may be more appropriate)
 
-Explore agents run as Opus (see Agent Selection in the global `CLAUDE.md`). Instruct them to:
+Choose exploration agents by Agent Selection in the global `CLAUDE.md`. Instruct them to:
 - Return hypotheses, not conclusions
 - Provide full file paths for relevant files
 - Identify locations, not deep analysis
@@ -47,7 +47,7 @@ After exploration:
 2. Confirm or refute hypotheses
 3. Build a mental model of the current state and what the task requires
 4. Identify existing documentation that must be updated, and whether any new document has a distinct durable purpose
-5. Decide the execution shape — what you will do yourself and what you will delegate to Opus sub-agents (see Phase 4) — and record it per phase when writing the plan
+5. Decide the execution shape — what you will do yourself, what to delegate and to which model (see Phase 4) — and record it per phase when writing the plan
 
 Before proposing a new document:
 - Identify the durable audience or question it will serve and the information it will uniquely own.
@@ -60,29 +60,23 @@ Before proposing a new document:
 
 Create a plan file named `PLAN-<task-slug>.md` (e.g., `PLAN-add-user-auth.md`) in the project root, unless the user or project instructions (CLAUDE.md, AGENTS.md) specify a different location. The task slug should be lowercase, hyphen-separated, and concise (3-5 words max).
 
-Write each phase for whoever will execute it, and name that executor by model — `Fable (orchestrator)`,
-`Opus (orchestrator)`, or `Opus sub-agent` — so a later session on a different model can tell whether
-the phase is written for it:
+Name each phase's executor, its model and role, chosen by Agent Selection in the global `CLAUDE.md`.
 
-- **Opus-executed** (an Opus orchestrator, or a sub-agent delegated by Fable): explicit numbered
-  steps with file paths, exact commands, and acceptance checks, so the executor never has to re-derive
-  anything, plus what to do when a check contradicts an assumption the steps rest on — by default, stop
-  and report the mismatch rather than improvise around it or push on with steps that no longer apply.
-  The phase text is the durable core of that sub-agent's brief; the spawn-time brief adds only what is
-  situational (current tree state, conventions learned during execution, return format, files another
-  agent owns).
-- **Fable-executed**: goal, constraints, acceptance criteria, and the decisions that bound the work.
-  No step list — Fable fills the steps in as it goes. If Opus later picks up such a phase, it must be
-  expanded to the Opus standard first (`/task` handles this).
+If you are Fable, your usage is limited, so send normal implementation work to Opus sub-agents
+unless a task is so small that delegating it costs more than doing it. Keep for yourself what needs
+frontier judgment — design, creative or scientific thinking, cross-cutting integration — but once
+you have worked out the design, Opus can implement it if the phase spells it out and its acceptance
+checks would catch an implementation mistake Opus wouldn't notice. The user can override the split.
 
-If you are Opus (or any non-Fable model), every phase is Opus-executed. If you are Fable, use your
-judgment on the split. Fable usage is limited, so normal implementation work should go to Opus
-sub-agents unless a task is so small that delegating it costs more than doing it. Keep for yourself
-what needs frontier judgment — design, creative or scientific thinking, cross-cutting integration —
-but once you have worked out the design, Opus can implement it if the phase spells it out and its
-acceptance checks would catch an implementation mistake Opus wouldn't notice. The user can override
-the split. Precision that matters belongs in the plan, not in a spawn-time brief: the plan is what
-gets reviewed in Phase 5 and what survives a crashed session.
+Every phase states its goal, context, constraints, ownership, governing decisions and acceptance
+checks. Include concrete steps, file paths, commands and expected results where uncertainty,
+reproducibility or operational risk warrants them. Leave routine details to the executor's
+judgment and explain how to investigate evidence that contradicts a plan assumption. Seek input
+when that investigation requires a material change beyond the authorized scope.
+
+The phase text is the durable core of a delegated brief; add current tree state, relevant
+conventions and return format at dispatch. Precision that matters belongs in the plan, not in a
+spawn-time brief: the plan is what gets reviewed in Phase 5 and what survives a crashed session.
 
 **Scale the plan to complexity**:
 
@@ -105,8 +99,7 @@ gets reviewed in Phase 5 and what survives a crashed session.
 - [ ] [How to confirm success]
 ```
 
-Simple plans always meet the Opus standard — files, commands, expected results per step. They are
-short, so the precision costs nothing, and it makes the plan safe for any executor.
+Simple plans should contain enough context and acceptance checks for their executor to execute or resume.
 
 ### For moderate/complex tasks:
 ```markdown
@@ -125,14 +118,14 @@ Status: PENDING APPROVAL
 ## Phases
 
 ### Phase 1: [Name]
-**Executor**: [Fable (orchestrator) | Opus (orchestrator) | Opus sub-agent]
+**Executor**: [Model and role, e.g. Fable (orchestrator) | Opus sub-agent | Astra via Codex]
 **Goal**: [What this achieves]
 
 **Work**:
-- [Item] - [Details: files/components involved; for Fable-executed phases, the constraints and acceptance criteria]
+- [Item] - [Details: files/components involved, constraints and acceptance criteria]
 - [Item] - [Details]
 
-**Steps** (Opus-executed phases only):
+**Steps** (where task-critical detail is needed):
 1. [Concrete step: file, command, expected result]
 2. [Step]
 
@@ -181,8 +174,8 @@ plan needs the summary plus anything genuinely open, and nothing more.
 1. **Summarize the plan in plain language.** Assume a technical reader who knows the project
    broadly but may not recall the details, or was never in them. Say what will change and why —
    not a phase-by-phase recital. Be direct; skip jargon unless a term genuinely carries meaning
-   no plain phrasing does. If you are Fable, include the execution split — what you keep and
-   what goes to Opus sub-agents — so the user can override it.
+   no plain phrasing does. Include the execution split — what you keep and what goes to
+   sub-agents, with their selected models — so the user can override it.
 2. **Present the decisions** from the plan's Decisions section: what was chosen, why, and what was
    rejected along with its tradeoffs. Present the calls **you** made; skip the ones the user
    already made or settled with you in conversation — don't re-litigate their own choices back
@@ -204,9 +197,8 @@ Execution is tracked with `/task` against the plan file. Once confirmed:
 2. Recommend where to execute. If planning left context light, continue in this session: the
    conversation holds rationale the file doesn't, which helps an orchestrator. If exploration
    and writing consumed substantial context, recommend a fresh session. Before recommending it,
-   move into the plan any rationale that so far lives only in this conversation. If the plan has
-   Fable-executed phases and the fresh session may run on Opus, say so: those phases must be
-   expanded to the Opus standard before Opus executes them. The user decides.
+   move into the plan any rationale that so far lives only in this conversation, and fill any
+   gaps in context or task-critical detail the next executor would need. The user decides.
 3. Invoke `/task` on the plan file here — or, for a fresh session, end with a fenced text block the
    user can paste verbatim as the new session's first message: the `/task` invocation on the plan
    file, plus the orientation files to read first (devlog, README, design notes — whatever helped

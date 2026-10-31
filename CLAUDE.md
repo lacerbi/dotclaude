@@ -16,9 +16,13 @@ Leave the session link out of commit messages and pull request descriptions: no 
 
 ## Agent Selection
 
-Sub-agents are **Opus** by default (`model: opus`) — exploration, review, verification, and implementation alike. Use Sonnet only for narrow, fully specified mechanical work where no judgment is needed (run a linter or test suite and report the result; apply a spelled-out edit). Never Haiku: it is a generation behind and can't be trusted with interpretation. Fable sub-agents only when the user asks for them — too expensive to spawn routinely.
+Sub-agents are **Opus** by default (`model: opus`) for planning, design, exploration, review, verification and implementation. Use Sonnet only for narrow, fully specified mechanical work where no judgment is needed (run a linter or test suite and report the result; apply a spelled-out edit). Do not use Haiku as a sub-agent. Use Fable when the user asks for it or when project instructions or an approved workflow call for it; it is too expensive to spawn routinely.
 
-**Cross-ecosystem roles: Astra ≈ Fable, Sol ≈ Opus.** The companion Codex setup (`~/.codex`) names its models that way, and plans written there label executors accordingly; read an Astra phase as written for Fable and a Sol phase as written for Opus. This mapping is for reading executor labels in plans written in Codex; a request to run an Astra or Sol agent is different (see Codex agents).
+**Project instructions and approved workflows take precedence.** Explicit project instructions and approved workflows (a plan, skill or workflow the user approved or invoked) can override the model and effort defaults here and can prescribe their own agents, such as a Fable step, an Astra review or a fixed set of reviewers. Invoking or continuing such a workflow authorizes the agents it prescribes: run them as named, without asking again because a step uses Fable or Astra. Keep any model or reviewer choice the user made explicitly. The one-heavy-compute-agent rule (below) still applies, as do the limits of what the current environment can run.
+
+**Choosing across Claude and Codex.** Pick each executor by what the assignment demands: its role, how uncertain it is and how much judgment it needs. In the user's experience so far, Astra handles complex work better than Sol, while ordinary coding suits Opus and Sol alike. Fable and Astra are worth adding for an independent perspective where their use is authorized. A model named in a request, plan or workflow is a choice to keep, not a label to translate to its nearest equivalent: an Astra or Sol executor runs as a Codex agent (see Codex agents).
+
+Give every executor the goal, context, constraints, the files it owns and acceptance checks, and leave routine details to its judgment. Add exact steps and commands where uncertainty, reproducibility or operational risk warrants them.
 
 **Split large work that parallelises.** A large task usually goes to several agents, not one: when it splits into independent parts (per module, per file group, per question), fan out, with any shared code the parts depend on done first by one agent. A single agent for a large task is the exception, for work that really has to stay together. The same holds when writing plans: mark the phases or steps that can run in parallel.
 
@@ -26,12 +30,12 @@ Sub-agents are **Opus** by default (`model: opus`) — exploration, review, veri
 
 ## Codex agents (Astra, Sol)
 
-When the user asks for an "Astra agent" or an "Astra review", it means GPT-6 Astra (`gpt-6-astra`), run through the Codex CLI, not a Claude sub-agent; "Sol" means GPT-6.1 Sol (`gpt-6.1-sol`). Use the effort the user names (`high`, `xhigh` or `max`), and `xhigh` when they name none. Run one only when the user asks for it, or when a plan or skill they approved calls for one.
+When the user asks for an "Astra agent" or an "Astra review", it means GPT-6 Astra (`gpt-6-astra`), run through the Codex CLI, not a Claude sub-agent; "Sol" means GPT-6.1 Sol (`gpt-6.1-sol`). Use the effort named by the user or by the plan or workflow that calls for the agent (`high`, `xhigh` or `max`), and `xhigh` when none is named. Run one when the user asks for it, or when project instructions or an approved plan, skill or workflow call for one; that call also authorizes it (see Agent Selection).
 
 - **Brief.** Write a self-contained brief to a file: the goal, the files to read, what counts as a finding, the report's format, and the rules. Read-only is the default, and the one-heavy-compute rule applies to Codex agents too. Codex reads the repository's `AGENTS.md`, but not the conversation that asked for it.
 - **Run.** Run it in the background, in a read-only sandbox (Bash syntax):
   `codex exec -m gpt-6-astra -c model_reasoning_effort='"xhigh"' -s read-only -C <repo> -o <report.md> - < <brief.md> > <log> 2>&1`
-  Put `--search` before `exec` (`codex --search exec …`) when the task needs web sources. Use a writable sandbox only when the user asks for edits.
+  Put `--search` before `exec` (`codex --search exec …`) when the task needs web sources. Use a writable sandbox (`-s workspace-write`) only when the user asks for edits, or when an approved plan or workflow gives the agent editing work.
 - **Check.** The log's header names the model, the effort and the sandbox; read it once after starting. The final message goes to the `-o` file, and the log holds the whole run. A `max` run can take an hour.
 - **Keep.** A report the work relies on goes where the project keeps its analysis outputs, not in a temporary directory.
 

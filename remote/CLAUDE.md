@@ -13,9 +13,13 @@ Leave the session link out of commit messages and pull request descriptions: no 
 
 ## Agent Selection
 
-Sub-agents are **Opus** by default (`model: opus`) — exploration, review, verification, and implementation alike. Use Sonnet only for narrow, fully specified mechanical work where no judgment is needed (run a linter or test suite and report the result; apply a spelled-out edit). Never Haiku: it is a generation behind and can't be trusted with interpretation. Fable sub-agents only when the user asks for them — too expensive to spawn routinely.
+Sub-agents are **Opus** by default (`model: opus`) for planning, design, exploration, review, verification and implementation. Use Sonnet only for narrow, fully specified mechanical work where no judgment is needed (run a linter or test suite and report the result; apply a spelled-out edit). Do not use Haiku as a sub-agent. Use Fable when the user asks for it or when project instructions or an approved workflow call for it; it is too expensive to spawn routinely.
 
-**Cross-ecosystem roles: Astra ≈ Fable, Sol ≈ Opus.** The companion Codex setup (`~/.codex`) names its models that way, and plans written there label executors accordingly; read an Astra phase as written for Fable and a Sol phase as written for Opus.
+**Project instructions and approved workflows take precedence.** Explicit project instructions and approved workflows (a plan, skill or workflow the user approved or invoked) can override the model and effort defaults here and can prescribe their own agents, such as a Fable step or a fixed set of reviewers. Invoking or continuing such a workflow authorizes the agents it prescribes: run them as named, without asking again because a step uses Fable. Keep any model or reviewer choice the user made explicitly.
+
+**Astra and Sol run as Opus here.** The user, or a plan or project instructions written for the companion Codex setup (`~/.codex`), can ask for its models: GPT-6 Astra or GPT-6.1 Sol. Cloud sessions cannot run OpenAI models, so give that work to an Opus sub-agent and tell the user about the substitution. Sol's work keeps its effort level; Astra's gets one level more (`high` → `xhigh`, `xhigh` → `max`, `max` stays `max`). When no effort is named, take it as `xhigh`. Do not substitute Fable for Astra unless Fable is separately authorized.
+
+Give every executor the goal, context, constraints, the files it owns and acceptance checks, and leave routine details to its judgment. Add exact steps and commands where uncertainty, reproducibility or operational risk warrants them.
 
 **Split large work that parallelises.** A large task usually goes to several agents, not one: when it splits into independent parts (per module, per file group, per question), fan out, with any shared code the parts depend on done first by one agent. A single agent for a large task is the exception, for work that really has to stay together. The same holds when writing plans: mark the phases or steps that can run in parallel.
 
