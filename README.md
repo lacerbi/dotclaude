@@ -62,9 +62,11 @@ not available there), `bin/read-files` with its `toks` dependency, and
 [`remote/CLAUDE.md`](remote/CLAUDE.md) as the global `~/.claude/CLAUDE.md`.
 Every step is soft, so a failed install never blocks the session from starting.
 
-`remote/CLAUDE.md` is a trimmed copy of the root `CLAUDE.md` that leaves out the
-rules tied to the local Windows machine and HPC setup. A rule that applies in both
-places has to be edited in both files.
+`remote/CLAUDE.md` is the root `CLAUDE.md` adapted for the cloud. It leaves out the
+Windows shell notes, the one-heavy-compute-agent rule, the Codex agents and memory
+sections and the HPC launcher location, adapts the Python environment rules to
+cloud VMs, and adds one rule of its own: Codex models named in requests or plans run
+as Claude models. A rule that applies in both places has to be edited in both files.
 
 ## License
 

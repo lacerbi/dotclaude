@@ -34,7 +34,7 @@ Explore the project to understand what exists and what the task involves. Scale 
 
 (For code-heavy tasks: Architecture, Feature, Dependency, Test explorers may be more appropriate)
 
-Choose exploration agents by Agent Selection in the global `CLAUDE.md`. Instruct them to:
+Choose exploration agents by Agent Selection in the global `CLAUDE.md`, and pass the model explicitly: Sonnet (`model: sonnet`) when the job is to find or identify something, Opus (`model: opus`) when the findings must be summarized well. Instruct them to:
 - Return hypotheses, not conclusions
 - Provide full file paths for relevant files
 - Identify locations, not deep analysis
@@ -198,7 +198,8 @@ Execution is tracked with `/task` against the plan file. Once confirmed:
    conversation holds rationale the file doesn't, which helps an orchestrator. If exploration
    and writing consumed substantial context, recommend a fresh session. Before recommending it,
    move into the plan any rationale that so far lives only in this conversation, and fill any
-   gaps in context or task-critical detail the next executor would need. The user decides.
+   gaps in context or task-critical detail the next executor would need, telling the user about
+   any substantial change. The user decides.
 3. Invoke `/task` on the plan file here — or, for a fresh session, end with a fenced text block the
    user can paste verbatim as the new session's first message: the `/task` invocation on the plan
    file, plus the orientation files to read first (devlog, README, design notes — whatever helped

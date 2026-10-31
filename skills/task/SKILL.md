@@ -41,7 +41,7 @@ When finished, the file shows the final status of all items, any unresolved issu
 
 ### 4. Sub-Agent Usage
 
-Use the executor the plan names for each phase (see Agent Selection in the global `CLAUDE.md`). Carry out orchestrator phases yourself and delegate the others to the named model as the global `CLAUDE.md` describes: Claude models through the Agent tool, Astra and Sol through the Codex CLI where it is available. The phase text is the core of the sub-agent's brief; add current tree state, relevant conventions, return format and the files the sub-agent owns.
+Use the executor the plan names for each phase (see Agent Selection in the global `CLAUDE.md`). Carry out orchestrator phases yourself, whatever model the plan names for them; when it differs from yours, say so, since the user may want to switch models. Delegate the other phases to the named model as the global `CLAUDE.md` describes: Claude models through the Agent tool, Astra, Sol and Terra through the Codex CLI where it is available. The phase text is the core of the sub-agent's brief; add current tree state, relevant conventions, return format and the files the sub-agent owns.
 
 Before execution, fill missing context or task-critical detail in the plan, with concrete steps, paths and commands where the work's uncertainty or risk warrants them. Let the executor investigate evidence that contradicts a plan assumption. Preserve the goal and decisions; seek input only for a material change beyond the user's authorization. Tell the user about every substantial or consequential change you make to the approved plan, whether it fills a gap or follows from an investigation; minor ones need no mention. A model change alone does not require rewriting a sufficient approved phase.
 
