@@ -150,10 +150,10 @@ Both commands write each document as a JSON file under `<dir>/docs/` and print t
 ## Exporting a board
 
 ```bash
-python board.py export <out_dir> --out <file.md> [--url <board url>] [--omit <id>] [--redact <file.json>]
+python board.py export <out_dir> --out <file.md> [--url <board url>] [--omit <id>] [--redact <file.json>] [--assistant <name>]
 ```
 
-The file has every point in the board's order, with its context, detail, options, recommendation, decision and discussion, then the general comments and the rounds. `--omit` leaves a point out, and `--redact` takes a JSON list of `[text, replacement]` pairs, for a copy that goes somewhere parts of the board shouldn't. The pairs apply to the board's text before it is laid out, then to the copy; each must match somewhere, and none may remain. Keep that list where the original text may be, not beside the copy. The script refuses a directory without `board/meta.json` and `items/`, so a mistyped path can't overwrite a good copy with an empty one.
+The file has every point in the board's order, with its context, detail, options, recommendation, decision and discussion, then the general comments and the rounds. `--assistant` names the assistant on its replies (Claude by default). `--omit` leaves a point out, and `--redact` takes a JSON list of `[text, replacement]` pairs, for a copy that goes somewhere parts of the board shouldn't. The pairs apply to the board's text before it is laid out, then to the copy; each must match somewhere, and none may remain. Keep that list where the original text may be, not beside the copy. The script refuses a directory without `board/meta.json` and `items/`, so a mistyped path can't overwrite a good copy with an empty one.
 
 ## Changing the page
 

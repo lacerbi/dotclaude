@@ -3,7 +3,7 @@
 
     board.py seed   BOARD.json --out DIR
     board.py round  SNAPSHOT ROUND.json --out DIR [--versions VERSIONS.json]
-    board.py export SNAPSHOT --out FILE.md [--url URL] [--omit ID]... [--redact REDACT.json]
+    board.py export SNAPSHOT --out FILE.md [--url URL] [--omit ID]... [--redact REDACT.json] [--assistant NAME]
 
 SNAPSHOT is a directory holding the board's data as ArtifactData saves it with out_dir:
 board/meta.json, board/general.json, items/<id>.json, responses/<id>.json and rounds/r<N>.json.
@@ -384,10 +384,11 @@ def quote(text):
     return "\n".join("> " + line if line.strip() else ">" for line in lines)
 
 
-def thread_lines(thread):
+def thread_lines(thread, assistant):
     out = []
     for m in thread or []:
-        who = "Claude" if m.get("who") == "claude" else "You"
+        # Replies are stored with who "claude" whichever assistant wrote them.
+        who = assistant if m.get("who") == "claude" else "You"
         verdict = f" ({m['verdict']})" if m.get("verdict") else ""
         out += [f"**{who}, round {m.get('round', '?')}{verdict}:**", ""]
         if (m.get("text") or "").strip():
@@ -395,7 +396,7 @@ def thread_lines(thread):
     return out
 
 
-def point_lines(pid, it):
+def point_lines(pid, it, assistant):
     settled = it.get("status") == "settled"
     kind = "Your call" if it.get("kind") == "call" else "Proposal"
     state = f"settled in round {it['settledRound']}" if settled and it.get("settledRound") else (
@@ -419,11 +420,11 @@ def point_lines(pid, it):
     if not settled and (it.get("changed") or "").strip():
         out += [f"**Updated in round {it.get('changedRound', '?')}.**", "", it["changed"].strip(), ""]
     if it.get("thread"):
-        out += ["**Discussion.**", ""] + thread_lines(it["thread"])
+        out += ["**Discussion.**", ""] + thread_lines(it["thread"], assistant)
     return out
 
 
-def export_text(snap, url, omit, date):
+def export_text(snap, url, omit, date, assistant="Claude"):
     meta, general, items, rounds = snap["meta"], snap["general"] or {}, snap["items"], snap["rounds"]
     left_out = [pid for pid in items if pid in omit]
     shown = sorted(((pid, it) for pid, it in items.items() if pid not in omit),
@@ -448,10 +449,10 @@ def export_text(snap, url, omit, date):
         if sec != section:
             out += [f"## {sec}", ""]
             section = sec
-        out += point_lines(pid, it)
+        out += point_lines(pid, it, assistant)
 
     if general.get("thread"):
-        out += ["## General comments", ""] + thread_lines(general["thread"])
+        out += ["## General comments", ""] + thread_lines(general["thread"], assistant)
 
     if rounds:
         out += ["## Rounds", "", "| Round | Submitted | Answered | Left open | General comment |",
@@ -488,7 +489,7 @@ def cmd_export(args):
     # The board's own text is redacted before it is laid out, so quoting can't hide a match; the
     # sentences this script writes are redacted after.
     snap = redact(snap, pairs, hits)
-    text = redact(export_text(snap, args.url, set(args.omit), args.date), pairs, hits)
+    text = redact(export_text(snap, args.url, set(args.omit), args.date, args.assistant), pairs, hits)
     missed = [old for i, (old, _) in enumerate(pairs) if i not in hits]
     if missed:
         fail("redactions not found anywhere on the board: " + "; ".join(repr(o[:60]) for o in missed))
@@ -520,6 +521,8 @@ def main():
     e.add_argument("--redact", type=pathlib.Path,
                    help="JSON list of [text, replacement] pairs applied to the copy; each must match")
     e.add_argument("--date", default=datetime.date.today().isoformat(), help="date of the copy (default: today)")
+    e.add_argument("--assistant", default="Claude", metavar="NAME",
+                   help="name shown on the assistant's replies (default: Claude)")
     args = ap.parse_args()
     {"seed": cmd_seed, "round": cmd_round, "export": cmd_export}[args.cmd](args)
 
