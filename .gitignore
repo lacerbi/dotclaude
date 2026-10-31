@@ -8,7 +8,6 @@
 !remote/CLAUDE.md
 !remote/setup.sh
 !LICENSE
-!settings.json
 !README.md
 !bin/
 !bin/read-files
@@ -31,3 +30,7 @@
 !skills/plan/**
 !skills/task/**
 !skills/triage/**
+
+# Build artefacts inside published skills. Must stay below the `!skills/...` lines,
+# since the last matching rule wins.
+__pycache__/
