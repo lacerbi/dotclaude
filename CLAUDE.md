@@ -32,6 +32,8 @@ Give every executor the goal, context, constraints, the files it owns and accept
 
 When the user asks for an "Astra agent" or an "Astra review", it means GPT-6 Astra (`gpt-6-astra`), run through the Codex CLI, not a Claude sub-agent; "Sol" means GPT-6.1 Sol (`gpt-6.1-sol`), and "Terra", a lighter model for mechanical work, means GPT-6.1 Terra (`gpt-6.1-terra`). Use the effort named by the user or by the plan or workflow that calls for the agent (`high`, `xhigh` or `max`), and `xhigh` when none is named. Run one when the user asks for it, or when project instructions or an approved plan, skill or workflow call for one; that call also authorizes it (see Agent Selection).
 
+Always pass these exact IDs with `-m`. Do not use the 6.2 versions of Astra or Sol (reported regressions, 2026-11-17) until the user says so.
+
 - **Brief.** Write a self-contained brief to a file: the goal, the files to read and the rules, plus what counts as a finding and the report's format for a review, or what Agent Selection says every executor gets for execution. Read-only is the default, and the one-heavy-compute rule applies to Codex agents too. Codex reads the repository's `AGENTS.md`, but not the conversation that asked for it.
 - **Run.** Run it in the background, in a read-only sandbox (Bash syntax):
   `codex exec -m gpt-6-astra -c model_reasoning_effort='"xhigh"' -s read-only -C <repo> -o <report.md> - < <brief.md> > <log> 2>&1`
