@@ -26,7 +26,29 @@ Give every executor the goal, context, constraints, the files it owns and accept
 
 **Split large work that parallelises.** A large task usually goes to several agents, not one: when it splits into independent parts (per module, per file group, per question), fan out, with any shared code the parts depend on done first by one agent. A single agent for a large task is the exception, for work that really has to stay together. The same holds when writing plans: mark the phases or steps that can run in parallel.
 
-**Parallel fan-out — only one heavy-compute agent.** When fanning out parallel agents (e.g. for review/doublecheck), at most **ONE** may run heavy compute (GPU/CPU-intensive processes: training, torch, test suites, builds). Instruct the rest to go deep but stay **read-only / static-analysis** (reading files, reasoning, grepping) — explicitly tell them not to run such processes. Running heavy compute in several agents at once once froze the machine. Cleanest variant: keep the single heavy slot in the main thread yourself and make the whole fan-out read-only.
+**Parallel fan-out — only one heavy-compute agent.** When fanning out parallel agents (e.g. for review/doublecheck), at most **ONE** may run heavy compute (GPU/CPU-intensive processes: training, torch, test suites, builds). Instruct the rest to go deep but leave reviewed sources unchanged and use **static analysis** (reading files, reasoning, grepping), writing only their assigned reports when required — explicitly tell them not to run such processes. Running heavy compute in several agents at once once froze the machine. Cleanest variant: keep the single heavy slot in the main thread yourself and keep the whole fan-out limited to static analysis and its assigned report files.
+
+## Agent-authored documents
+
+When you delegate a draft, proposal or report longer than a short reply, assign it an output
+file: give the agent the file's exact path, file-writing tools and, in its task message, the
+instruction to write the document to that file instead of returning it in its final reply.
+Once its initial source reading is done, the agent creates the file with its title and
+outline, then writes the document section by section, composing each section just before it
+saves it, in sections of a size it judges manageable. It continues without human prompts
+between sections and reads and checks the completed file; its final reply gives only the
+path, whether the document is complete and a short summary.
+
+Assign exclusive ownership of the output. Reviewing sources does not authorize editing them,
+the brief or other agents' files; after the run, check that nothing outside the assigned
+output changed (`git status --short` in a repository). Keep stdout, stderr and any
+`codex exec -o` file separate from the document, so that a launch or an exit cannot
+overwrite saved sections. Leave turn limits and output allowances at their defaults: writing
+in sections takes many turns, and a smaller allowance leaves less room to reason before each
+save. After an interruption, keep the partial file and its log, relaunch with a new log
+name, and have the resumed or new agent continue the existing file, adding only the missing
+sections. A review whose brief asks for its findings in the final reply and assigns no file,
+and output that a program parses, keep the delivery their brief defines.
 
 ## Codex agents (Astra, Sol, Terra)
 
@@ -34,12 +56,18 @@ When the user asks for an "Astra agent" or an "Astra review", it means GPT-6 Ast
 
 Always pass these exact IDs with `-m`. Do not use the 6.2 versions of Astra or Sol (reported regressions, 2026-11-17) until the user says so.
 
-- **Brief.** Write a self-contained brief to a file: the goal, the files to read and the rules, plus what counts as a finding and the report's format for a review, or what Agent Selection says every executor gets for execution. Read-only is the default, and the one-heavy-compute rule applies to Codex agents too. Codex reads the repository's `AGENTS.md`, but not the conversation that asked for it.
-- **Run.** Run it in the background, in a read-only sandbox (Bash syntax):
-  `codex exec -m gpt-6-astra -c model_reasoning_effort='"xhigh"' -s read-only -C <repo> -o <report.md> - < <brief.md> > <log> 2>&1`
-  Put `--search` before `exec` (`codex --search exec …`) when the task needs web sources. Use a writable sandbox (`-s workspace-write`) only when the user asks for edits, or when an approved plan or workflow gives the agent editing work.
-- **Check.** The log's header names the model, the effort and the sandbox; read it once after starting. The final message goes to the `-o` file, and the log holds the whole run. A `max` run can take an hour.
+- **Brief.** Write a self-contained brief to a file: the goal, the files to read and the rules, plus what counts as a finding and the report's format for a review, or what Agent Selection says every executor gets for execution. Source files stay unchanged unless edits are authorized; an assigned report is writable and follows Agent-authored documents above. The one-heavy-compute rule applies to Codex agents too. Codex reads the repository's `AGENTS.md`, but not the conversation that asked for it.
+- **Run.** For an assigned document, put its exact absolute path and the writing instructions of Agent-authored documents in the brief. Run in the background with file-writing permission (Bash syntax):
+  `codex exec -m gpt-6-astra -c model_reasoning_effort='"xhigh"' -s workspace-write -C <repo> --add-dir <output-directory> - < <brief.md> > <run.log> 2>&1`
+  The workspace sandbox is broader than the brief's file-ownership rule: the agent may write only its assigned output. `--add-dir` covers an output directory outside the workspace. For a review that answers in its final reply and has no output file, use `-s read-only`, omit `--add-dir` and save the reply with `-o <review.md>`. Put `--search` before `exec` (`codex --search exec …`) when the task needs web sources.
+- **Check.** The log's header names the model, the effort and the sandbox; read it once after starting. The report grows on disk through file-tool writes; stdout and any `-o` file hold only the short handback, separate from the report. Completion requires a successful exit, a completion reply and inspection of the saved document. A `max` run can take an hour.
 - **Keep.** A report the work relies on goes where the project keeps its analysis outputs, not in a temporary directory.
+
+## Antigravity agents
+
+"Neon" means Gemini 4 Neon, run through the Antigravity CLI (`agy`). Use one only when the user explicitly asks for a Gemini agent. Write its brief to a file as for Codex agents. It writes no files, so its final reply is the document, saved from stdout. Run it in the background:
+`agy -p 'Read and follow <brief.md>; reply with the complete document only.' --model gemini-4-neon-xhigh --effort xhigh --add-dir <dir> > <output.md> 2> <run.log>`
+To check which files it read, look at the `read_file` calls in its transcript, `~/.gemini/antigravity-cli/brain/<session>/.system_generated/logs/transcript_full.jsonl`.
 
 ## No memory system
 
