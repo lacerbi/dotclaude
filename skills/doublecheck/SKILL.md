@@ -15,9 +15,11 @@ The injected diffs cover working-tree changes. If a diff was too large to inline
 
 ## Your Task
 
-Perform a meticulous verification and comprehensive review of all work done. Establish the actual change scope before reviewing. Treat verification as read-only unless the user explicitly asks for fixes.
+Perform a meticulous verification and comprehensive review of all work done. Establish the actual change scope before reviewing. Treat reviewed files as read-only unless the user explicitly asks for fixes.
 
 **Deploy one or more fresh-context reviewers**, choosing models and efforts by Agent Selection in the global `CLAUDE.md`, including any limit it sets on agents that run heavy compute. Split by aspect as the size and complexity of the change warrant. When project instructions, or the plan or workflow that invoked this review, name the reviewers, run those. Review directly yourself only when the change is so small that a reviewer would add nothing: the point of this skill is a review by agents that did not do the work and don't share its assumptions. A fresh-context reviewer knows nothing of this conversation, so brief each one with: the original goals and requirements, its exact scope (files, commits, or the plan file), what counts as a finding (below), and the report format (below).
+
+A reviewer assigned a report file writes only that file, following Agent-authored documents in the global `CLAUDE.md`; its final reply gives the path, whether the report is complete and a short summary. Keep stdout, stderr and any `codex exec -o` file separate from the report. A reviewer whose brief asks for its findings in its final reply needs no report file.
 
 Verify that:
 
