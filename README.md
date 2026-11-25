@@ -19,6 +19,7 @@ See also the companion [Codex skills repository](https://github.com/lacerbi/dotc
 | [`/handoff`](skills/handoff/SKILL.md) | Make work resumable from a clean checkout: commit/push, record in-flight async work, flag what isn't durable | Explicit | - |
 | [`/hpc`](skills/hpc/SKILL.md) | Launch and manage jobs on the HPC cluster | Explicit | Requires the `hpc` launcher tool |
 | [`/decision-board`](skills/decision-board/SKILL.md) | Put the points to decide on a private claude.ai page, answered and settled round by round | Auto | Needs the Artifact tools; offered in one line first |
+| [`/plain-english [file or text]`](skills/plain-english/SKILL.md) | Find "Claudish", English that only its writer can follow (words in private senses, labels the reader can't decode, compressed sentences, metaphors). Claude fixes its own drafts and texts it was asked to edit, and suggests rewrites for other text, keeping the meaning | Auto | `/doublecheck` uses its two checks by a fresh agent on long or important documents: one finds what a new reader can't follow, the other finds changes of meaning in rewrites |
 
 **Invoke**: *Auto* skills may be triggered by Claude when relevant; *Explicit* skills run only when you call `/<name>` (or ask for them) — they set `disable-model-invocation: true` or are explicit-only by convention.
 
@@ -37,6 +38,7 @@ See also the companion [Codex skills repository](https://github.com/lacerbi/dotc
 /files add a caching layer to the API
 /audit src/components/
 /doublecheck authentication logic
+/plain-english docs/design.md
 /triage "the login button doesn't work on mobile"
 /load src/config.ts src/utils.ts
 /handoff

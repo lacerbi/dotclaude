@@ -61,13 +61,23 @@ For **plans and design documents**, also check:
 - Whether the plan addresses verification and rollback
 - Whether documentation (READMEs, API docs, guides) needs updating or creation to reflect the changes
 
+For **long or important prose** (documents, specs, plans, proposals, prompts and briefs that people or models will act on), add one reviewer that acts as the reader in the `plain-english` skill's "Check by a fresh reader". This reviewer reads the text without starting other agents. Its brief replaces the briefing above: give it the text, a description of the text's intended reader and the instructions for the reader in step 2 of that check, together with a report file and the instruction not to run heavy processes. Don't give it the goals, what the text is meant to say, what counts as a finding or the report format. It reports without filtering. You turn its report into findings by comparing its restatements with what the text is meant to say. Each finding has its location in the text and high confidence, because the reader's difficulty is the evidence.
+
+- A wrong restatement that would lead a reader to act wrongly is Must fix, and so are two instructions that contradict each other so that a reader would not know which to follow.
+- Any other wrong restatement or reported contradiction, a wrong guess, a sentence read twice and an instruction the reader could not apply are Should fix.
+- A right guess is Optional.
+
+This review runs one round; it does not rerun the check after fixes.
+
+When the change rewrites existing long or important prose, also add one reviewer that acts as the agent in the skill's "Meaning check". This reviewer compares the two versions without starting other agents and changes nothing. Give it the old and the new text, the instructions in step 2 of that check and the instruction not to run heavy processes, but not the goals or what counts as a finding. It reports every difference without filtering. Each difference in meaning that the change did not intend is Must fix, with its location in the new text and high confidence.
+
 **Focus area (optional; if empty focus on all changes/files)**:
 
 <focus> $ARGUMENTS </focus>
 
 ## What counts as a finding
 
-Report anything that affects correctness, the stated requirements, coherence of the changes, or future maintainability — including minor but real issues. Style counts when it is part of the criteria (a style guide, a house convention, or the focus area — typical when reviewing prose or docs); otherwise drop personal style preferences. Drop speculative or unverifiable items. Each finding carries a location, a one-line statement of the problem, and a confidence (high / medium / low). Reviewers apply this bar themselves so the report that reaches the orchestrator stays high-signal.
+Report anything that affects correctness, the stated requirements, coherence of the changes, or future maintainability — including minor but real issues. Style counts when it is part of the criteria: a style guide, a house convention or the focus area. The Plain English section of the global `CLAUDE.md` is a house convention that applies to all prose in the change, including comments and docstrings. Drop personal style preferences that none of these cover. Drop speculative or unverifiable items. Each finding carries a location, a one-line statement of the problem, and a confidence (high / medium / low). Reviewers apply this bar themselves so the report that reaches the orchestrator stays high-signal. The two reviewers for prose described above, the fresh reader and the one for the meaning check, are the exception: they report without filtering, and you turn their reports into findings.
 
 ## Report
 
